@@ -101,6 +101,7 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.setItem("user", JSON.stringify(userData));
       sessionStorage.setItem("accounts", JSON.stringify(accounts));
       sessionStorage.setItem("role", userRole);
+      sessionStorage.setItem("email",userData.email);
 
       setToken(token);
       setUser(userData);

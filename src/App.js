@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
@@ -12,8 +11,12 @@ import UpdatePassword from "./login-signup/ActivateAccount";
 // pages
 import Home from "./pages/Home";
 import ProtectedRoute from "./context/ProtecteRoute";
-
-
+import Document from "./pages/Document/Document";
+import ChatTasks from "./pages/Chat&Tasks/ChatTasks";
+import Organizers from "./pages/Organizers/Organizers";
+import Proposals from "./pages/Proposals/Proposals";
+import Invoice from "./pages/Billing/Invoice"
+import Settings from "./pages/Settings";
 const App = () => {
   return (
     <Routes>
@@ -29,13 +32,65 @@ const App = () => {
         element={
           <ProtectedRoute>
             <Dashboard />
-           </ProtectedRoute>
+          </ProtectedRoute>
         }
       >
-        <Route path="home" element={ <ProtectedRoute>
+        <Route
+          path="home"
+          element={
+            <ProtectedRoute>
               <Home />
-             </ProtectedRoute>} />
-
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="document"
+          element={
+            <ProtectedRoute>
+            <Document/>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="chatstasks"
+          element={
+            <ProtectedRoute>
+              <ChatTasks/>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="organizers"
+          element={
+            <ProtectedRoute>
+              <Organizers/>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="proposalsels"
+          element={
+            <ProtectedRoute>
+              <Proposals/>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="billing"
+          element={
+            <ProtectedRoute>
+             <Invoice/>
+                         </ProtectedRoute>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <ProtectedRoute>
+             <Settings/>
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       {/* default */}

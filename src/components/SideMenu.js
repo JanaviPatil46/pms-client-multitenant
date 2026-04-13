@@ -96,7 +96,7 @@ export default function SideMenu() {
 
     toast.success("Logged out");
 
-    navigate("/client/login");
+    navigate("/login");
   };
 
   const toggleCollapse = () => setCollapsed(!collapsed);
