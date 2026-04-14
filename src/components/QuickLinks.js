@@ -7,33 +7,32 @@ import { Divider, Stack, Typography } from "@mui/material";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import DriveFolderUploadIcon from "@mui/icons-material/DriveFolderUpload";
 import TelegramIcon from "@mui/icons-material/Telegram";
-import NewChat from "../pages/chats&tasks/NewChat";
+// import NewChat from "../pages/chats&tasks/NewChat";
 import PhoneAndroidIcon from "@mui/icons-material/PhoneAndroid";
 import LocationPinIcon from "@mui/icons-material/LocationPin";
 const QuickLinks = ({ accountId, accountName }) => {
   const [open, setOpen] = useState(false);
-  console.log("accountId from quicklinks",accountId)
-  console.log("accountName from quicklinks",accountName)
+  console.log("accountId from quicklinks", accountId);
+  console.log("accountName from quicklinks", accountName);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   return (
     <>
-   
-        <Paper sx={{
-                    p: 2,
-                    borderRadius: 2,
-                    boxShadow: 1,
-                    transition: "all 0.3s",
-                    cursor: "pointer",
-                    
-                  }}>
-          <Stack direction="row" sx={{ gap: 1, alignItems: "center", p: 2 }}>
+      <Paper
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          boxShadow: 1,
+          transition: "all 0.3s",
+          cursor: "pointer",
+        }}
+      >
+        <Stack direction="row" sx={{ gap: 1, alignItems: "center", p: 2 }}>
           <Typography variant="h6" component="p" sx={{ flexGrow: 1 }}>
             Quick links
           </Typography>
         </Stack>
-      
-       
+
         <Grid container spacing={2} sx={{ p: 1 }}>
           <Grid size={{ xs: 12, md: 6 }}>
             <Stack>
@@ -45,7 +44,7 @@ const QuickLinks = ({ accountId, accountName }) => {
               </Box>
             </Stack>
           </Grid>
-          
+
           <Grid size={{ xs: 12, md: 6 }}>
             <Stack>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -61,24 +60,23 @@ const QuickLinks = ({ accountId, accountName }) => {
             </Stack>
           </Grid>
         </Grid>
-        </Paper>
-        
-       
-<Paper sx={{
-                    p: 2,
-                    borderRadius: 2,
-                    boxShadow: 1,
-                    transition: "all 0.3s",
-                    cursor: "pointer",
-                    mt:3
-                    
-                  }}>
+      </Paper>
+
+      <Paper
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          boxShadow: 1,
+          transition: "all 0.3s",
+          cursor: "pointer",
+          mt: 3,
+        }}
+      >
         <Stack direction="row" sx={{ gap: 1, alignItems: "center", p: 2 }}>
           <Typography variant="h6" component="p" sx={{ flexGrow: 1 }}>
             Balance
           </Typography>
         </Stack>
-   
 
         <Box sx={{ flexGrow: 1, p: 2 }}>
           <Grid container spacing={2}>
@@ -133,23 +131,23 @@ const QuickLinks = ({ accountId, accountName }) => {
             </Grid>
           </Grid>
         </Box>
-          </Paper>
-<Paper sx={{
-                    p: 2,
-                    borderRadius: 2,
-                    boxShadow: 1,
-                    transition: "all 0.3s",
-                    cursor: "pointer",
-                    mt:3
-                    
-                  }}>
+      </Paper>
+      <Paper
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          boxShadow: 1,
+          transition: "all 0.3s",
+          cursor: "pointer",
+          mt: 3,
+        }}
+      >
         <Stack direction="row" sx={{ gap: 1, alignItems: "center", p: 2 }}>
           <Typography variant="h6" component="p" sx={{ flexGrow: 1 }}>
             Contact info
           </Typography>
         </Stack>
 
-      
         <Stack p={2}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <PhoneAndroidIcon fontSize="small" />
@@ -173,29 +171,35 @@ const QuickLinks = ({ accountId, accountName }) => {
         </Stack>
         <Stack p={2}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <LocationPinIcon fontSize="small" sx={{ color: "#f0c000" }}/>
+            <LocationPinIcon fontSize="small" sx={{ color: "#f0c000" }} />
             <Box>
-            {" "}
-            <Typography variant="subtitle2" component="p" sx={{ flexGrow: 1 }}>
-              Address
-            </Typography>
-            <Typography variant="subtitle2" component="p" sx={{ flexGrow: 1 }}>
-              3015 Hopyard Rd, Ste M, Pleasanton, CA 94588
-            </Typography>
+              {" "}
+              <Typography
+                variant="subtitle2"
+                component="p"
+                sx={{ flexGrow: 1 }}
+              >
+                Address
+              </Typography>
+              <Typography
+                variant="subtitle2"
+                component="p"
+                sx={{ flexGrow: 1 }}
+              >
+                3015 Hopyard Rd, Ste M, Pleasanton, CA 94588
+              </Typography>
+            </Box>
           </Box>
-          </Box>
-          
         </Stack>
-        </Paper>
-      
-
+      </Paper>
+{/* 
       <NewChat
         open={open}
         close={handleClose}
         accId={accountId}
         accountName={accountName}
         // loginuserid={loginUserId}
-      />
+      /> */}
     </>
   );
 };

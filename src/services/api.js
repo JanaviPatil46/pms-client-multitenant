@@ -773,7 +773,8 @@ export const proposalAPI = {
     proposalApi.get(
       `/account/proposals/byaccount/${accountIds.join(",")}`
     ),
-
+getPendingAccountProposalsByAccountId: (accountId) =>
+  proposalApi.get(`/account/proposals/byaccount/${accountId}/status/pending`),
   // ===== BULK =====
 
   // DELETE MULTIPLE
@@ -844,10 +845,10 @@ export const organizerAPI = {
     organizerApi.delete(`/api/orgaccwise/organizeraccountwise/${id}`),
 
   // GET BY ACCOUNT ID
-  getOrganizerByAccountId: (accountId) =>
-    organizerApi.get(
-      `/api/orgaccwise/organizeraccountwise/organizerbyaccount/${accountId}`
-    ),
+  // getOrganizerByAccountId: (accountId) =>
+  //   organizerApi.get(
+  //     `/api/orgaccwise/organizeraccountwise/organizerbyaccount/${accountId}`
+  //   ),
 
   // GET ACTIVE BY ACCOUNT ID
   getActiveOrganizerByAccountId: (accountId, isActive) =>
@@ -1241,7 +1242,7 @@ export const chatAPI = {
     chatApi.post(`/chats/chatsaccountwise/addclienttask`, data),
 
   updateTaskCheckedStatus: (data) =>
-    chatApi.post(`/chatsaccountwise/updateTaskCheckedStatus`, data),
+    chatApi.post(`/chats/chatsaccountwise/updateTaskCheckedStatus`, data),
 
   // ================= UNREAD =================
 

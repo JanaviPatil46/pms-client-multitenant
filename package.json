@@ -2,7 +2,7 @@
   "name": "mui-client-dashboard",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/client",
+  
   "dependencies": {
     "@docuseal/react": "^1.0.67",
     "@emotion/react": "^11.14.0",

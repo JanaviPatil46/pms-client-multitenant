@@ -15,8 +15,11 @@ import Document from "./pages/Document/Document";
 import ChatTasks from "./pages/Chat&Tasks/ChatTasks";
 import Organizers from "./pages/Organizers/Organizers";
 import Proposals from "./pages/Proposals/Proposals";
-import Invoice from "./pages/Billing/Invoice"
+import Invoice from "./pages/Billing/Invoice";
 import Settings from "./pages/Settings";
+import UpdateChat from "./pages/Chat&Tasks/UpdateChat";
+import PayInvoice from "./pages/Billing/PayInvoice";
+import DocsFolderTree from "./docs-management/DocsFolderTree";
 const App = () => {
   return (
     <Routes>
@@ -47,7 +50,7 @@ const App = () => {
           path="document"
           element={
             <ProtectedRoute>
-            <Document/>
+              <DocsFolderTree />
             </ProtectedRoute>
           }
         />
@@ -55,7 +58,15 @@ const App = () => {
           path="chatstasks"
           element={
             <ProtectedRoute>
-              <ChatTasks/>
+              <ChatTasks />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="updatechat/:_id"
+          element={
+            <ProtectedRoute>
+              <UpdateChat />
             </ProtectedRoute>
           }
         />
@@ -63,7 +74,7 @@ const App = () => {
           path="organizers"
           element={
             <ProtectedRoute>
-              <Organizers/>
+              <Organizers />
             </ProtectedRoute>
           }
         />
@@ -71,7 +82,7 @@ const App = () => {
           path="proposalsels"
           element={
             <ProtectedRoute>
-              <Proposals/>
+              <Proposals />
             </ProtectedRoute>
           }
         />
@@ -79,15 +90,23 @@ const App = () => {
           path="billing"
           element={
             <ProtectedRoute>
-             <Invoice/>
-                         </ProtectedRoute>
+              <Invoice />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="payinvoice"
+          element={
+            <ProtectedRoute>
+              <PayInvoice />
+            </ProtectedRoute>
           }
         />
         <Route
           path="settings"
           element={
             <ProtectedRoute>
-             <Settings/>
+              <Settings />
             </ProtectedRoute>
           }
         />
