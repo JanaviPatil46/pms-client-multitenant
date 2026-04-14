@@ -40,7 +40,7 @@ const PendingApprovals = ({ accountId, adminUserId }) => {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [openViewer, setOpenViewer] = useState(false);
   const [accountName, setAccountName] = useState("");
-console.log("selected account docs",selectedDoc)
+
 const fetchAccountDetails = async () => {
   try {
     const res = await accountsAPI.getAccountById(accountId);
@@ -125,7 +125,7 @@ setAccountName(res.data.accountName)
     }
   };
   const handleOpenViewer = async (doc) => {
-    console.log("selected document details", doc);
+    console.log("selected document", doc);
     const hasPendingInvoice =
       doc?.meta?.lockInvoiceStatus === "pendingpayment" &&
       Array.isArray(doc?.meta?.invoiceLock) &&
@@ -206,13 +206,13 @@ setAccountName(res.data.accountName)
       action === "approve" ? "approvalCompleted" : "canceledApproval";
 
     // ✅ FIXED: use proper API method
-    await accountDocsAPI.updateStatus({
-      path: originalPath,
-      field: "authStatus",
-      status: newStatus,
-      action,
-      reason: cancelReason,
-    });
+    await updateStatus(
+        { path: originalPath },
+        "authStatus",
+        newStatus,
+        action,
+        cancelReason
+      );
 
     // cleanup UI
     setOpenViewer(false);
@@ -274,9 +274,9 @@ setAccountName(res.data.accountName)
   try {
     setLoading(true);
 
-    const res = await accountDocsAPI.getPendingApprovalsByAccount(accountId);
+    const res = await accountDocsAPI.getPendingApprovals(accountId);
 
-    setDocuments(res.data.pendingApprovals || []);
+    setDocuments(res.data.documents || []);
     console.log("pending account docs",res.data)
   } catch (err) {
     console.error("Failed to load pending approvals", err);
@@ -288,8 +288,7 @@ setAccountName(res.data.accountName)
   useEffect(() => {
     fetchPendingApprovals();
   }, []);
-  const FILE_URL = process.env.REACT_APP_FOLDER_MANAGEMENT;
-  const FILE_BASE_URL = `${FILE_URL}/uploads/accounts`;
+  const FILE_BASE_URL = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts`;
   
 
 return (
@@ -328,7 +327,7 @@ return (
                   <Box display="flex" alignItems="center" gap={1} mb={1}>
                     <DescriptionIcon color="warning" />
                     <Typography variant="subtitle1" fontWeight={600} noWrap>
-                      {doc.filename}
+                      {doc.name}
                     </Typography>
                   </Box>
                 </CardContent>
@@ -376,7 +375,7 @@ return (
             <DialogContent dividers sx={{ height: "80vh" }}>
               {selectedDoc ? (
                 <iframe
-                  src={`${selectedDoc.fileUrl}`}
+                  src={`${FILE_BASE_URL}/${selectedDoc.path}`}
                   title={selectedDoc.name}
                   width="100%"
                   height="100%"

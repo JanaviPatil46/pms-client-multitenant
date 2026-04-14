@@ -1133,10 +1133,14 @@ downloadItems: (data) =>
     folderManagementApi.get("/accounts/docs/documents/new-tagged"),
 
   // Pending approvals
-  getPendingApprovals: () =>
-    folderManagementApi.get(
-      "/accounts/docs/documents/pending-approvals"
-    ),
+  // getPendingApprovals: () =>
+  //   folderManagementApi.get(
+  //     "/accounts/docs/documents/pending-approvals"
+  //   ),
+getPendingApprovals: (accountId) =>
+  folderManagementApi.get("/accounts/docs/documents/pending-approvals", {
+    params: { folderPath: accountId },
+  }),
 
   // Pending signatures
   getPendingSignatures: () =>
