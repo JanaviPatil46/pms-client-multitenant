@@ -19,6 +19,7 @@ import Invoice from "./pages/Billing/Invoice";
 import Settings from "./pages/Settings";
 import UpdateChat from "./pages/Chat&Tasks/UpdateChat";
 import PayInvoice from "./pages/Billing/PayInvoice";
+import TrashedDocs from "./docs-management/TrashedDocs"
 import DocsFolderTree from "./docs-management/DocsFolderTree";
 const App = () => {
   return (
@@ -54,6 +55,7 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+         <Route path="trashDocs" element={<ProtectedRoute><TrashedDocs/></ProtectedRoute>}/>
         <Route
           path="chatstasks"
           element={

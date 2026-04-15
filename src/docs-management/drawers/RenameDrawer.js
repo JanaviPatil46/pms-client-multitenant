@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Drawer, Box, Typography, TextField, Button } from "@mui/material";
 import axios from "axios";
 import { toast } from "material-react-toastify";
+import { accountDocsAPI } from "../../services/api";
 
 const RenameDrawer = ({
   isOpen,
@@ -29,32 +30,60 @@ const RenameDrawer = ({
   }, [isOpen, selectedFolderForMenu]);
 
   // ✅ Rename function
-  const handleRename = async () => {
-    if (!newName.trim()) {
-      setMessage("⚠️ New name is required!");
-      return;
-    }
+  // const handleRename = async () => {
+  //   if (!newName.trim()) {
+  //     setMessage("⚠️ New name is required!");
+  //     return;
+  //   }
 
-    try {
-      const res = await axios.post(
-        "https://www.snptaxes.com/api/accountsdoc/rename",
-        {
-          currentPath,
-          newName,
-        }
-      );
+  //   try {
+  //     const res = await axios.post(
+  //       "https://www.snptaxes.com/api/accountsdoc/rename",
+  //       {
+  //         currentPath,
+  //         newName,
+  //       }
+  //     );
 
-      setMessage(`✅ ${res.data.message}`);
-      toast.success(`${res.data.message}`)
-         onClose();
-      fetchFolderTree(); // refresh folder structure
+  //     setMessage(`✅ ${res.data.message}`);
+  //     toast.success(`${res.data.message}`)
+  //        onClose();
+  //     fetchFolderTree(); // refresh folder structure
      
-    } catch (err) {
-      console.error("Rename error:", err);
-      setMessage(`❌ Error: ${err.response?.data?.error || "Server Error"}`);
-    }
-  };
+  //   } catch (err) {
+  //     console.error("Rename error:", err);
+  //     setMessage(`❌ Error: ${err.response?.data?.error || "Server Error"}`);
+  //   }
+  // };
+const handleRename = async () => {
+  if (!newName.trim()) {
+    setMessage("⚠️ New name is required!");
+    return;
+  }
 
+  try {
+    const res = await accountDocsAPI.renameItem({
+      currentPath,
+      newName,
+    });
+
+    const data = res.data;
+
+    setMessage(`✅ ${data.message}`);
+    toast.success(data.message);
+
+    onClose();
+    await fetchFolderTree();
+  } catch (err) {
+    console.error("Rename error:", err);
+
+    setMessage(
+      `❌ Error: ${err.response?.data?.error || "Server Error"}`
+    );
+
+    toast.error("Rename failed");
+  }
+};
   return (
     <Drawer anchor="right" open={isOpen} onClose={onClose}>
       <Box sx={{ width: 400, p: 3, height: "100%" }}>

@@ -39,6 +39,7 @@ import {
   FaFileAlt,
 } from "react-icons/fa";
 import { AiFillFileUnknown } from "react-icons/ai";
+import { accountDocsAPI } from "../services/api";
 const TrashedDocs = () => {
    const [accountId, setAccountId] = useState(
       sessionStorage.getItem("accountId")
@@ -58,23 +59,24 @@ const TrashedDocs = () => {
       fetchFolderTree(accountId);
     }, [accountId]);
 
-    // API call to fetch folder tree for a given template ID
-    const fetchFolderTree = async (accountId) => {
-      try {
-        const res = await fetch(
-          `https://www.snptaxes.com/api/accountsdoc/list-trashed?folderPath=${accountId}`
-        );
-        const data = await res.json();
-        console.log("janavi patil", data);
-        if (res.ok) {
-          setFolderTree(data.contents.Client || []);
-        } else {
-          setError("Failed to fetch folder tree");
-        }
-      } catch (err) {
-        setError("Error fetching folder tree");
-      }
-    };
+   const fetchFolderTree = async (accountId) => {
+  try {
+    const res = await accountDocsAPI.listTrashedItems(accountId);
+
+    console.log("janavi patil", res.data);
+
+    const data = res.data;
+
+    if (res.status === 200) {
+      setFolderTree(data.contents?.Client || []);
+    } else {
+      setError("Failed to fetch folder tree");
+    }
+  } catch (err) {
+    console.error(err);
+    setError("Error fetching folder tree");
+  }
+};
     const toggleFolder = (path, isReadOnly) => {
       // if (isReadOnly) return;
       setExpandedFolders((prev) => ({
@@ -105,102 +107,77 @@ const TrashedDocs = () => {
     };
 
     const restoreItem = async (item) => {
-      try {
-        const res = await fetch(
-          "https://www.snptaxes.com/api/accountsdoc/restore",
-          {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ targetPath: item.path }),
-          }
-        );
+  try {
+    const res = await accountDocsAPI.restoreItem({
+      targetPath: item.path,
+    });
 
-        const data = await res.json();
+    const data = res.data;
 
-        if (res.ok && data.success) {
-          toast.success("Item restored successfully");
-          fetchFolderTree(accountId);
-        } else {
-          toast.error(data.message || "Restore failed");
-        }
-      } catch (err) {
-        toast.error("Error restoring item");
-      }
-    };
+    if (res.status === 200 && data.success) {
+      toast.success("Item restored successfully");
+      fetchFolderTree(accountId);
+    } else {
+      toast.error(data.message || "Restore failed");
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error("Error restoring item");
+  }
+};
     const handleDownload = async (item) => {
       try {
-        const res = await fetch(
-          "https://www.snptaxes.com/api/accountsdoc/download",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              paths: item.path, // backend already supports string or array
-            }),
-          }
-        );
-
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || "Download failed");
-        }
-
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = item.name || "download";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-      } catch (err) {
-        console.error("Download error:", err);
-      }
+         const res = await accountDocsAPI.downloadItems({
+           paths: item.path,
+         });
+     
+         const blob = res.data;
+         const url = window.URL.createObjectURL(blob);
+     
+         const a = document.createElement("a");
+         a.href = url;
+         a.download = item.name || "download";
+         document.body.appendChild(a);
+         a.click();
+         a.remove();
+     
+         window.URL.revokeObjectURL(url);
+       } catch (err) {
+         console.error("Download error:", err);
+       }
     };
     // 🗑️ Delete File or Folder (Universal)
     const deleteItem = async (item) => {
-      console.log("Deleting item:", item);
-      if (!item?.path) return alert("Invalid path");
-      // console.log("delete path", item.path);
-      // console.log("delete item", item);
-      // const confirmDelete = window.confirm(
-      //   `Are you sure you want to delete "${item.name}"? This cannot be undone!`
-      // );
-      // if (!confirmDelete) return;
+  console.log("Deleting item:", item);
 
-      try {
-        const response = await fetch(
-          "https://www.snptaxes.com/api/accountsdoc/delete",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ targetPath: item.path }),
-          }
-        );
+  if (!item?.path) {
+    toast.error("Invalid path");
+    return;
+  }
 
-        const data = await response.json();
+  try {
+    const res = await accountDocsAPI.deleteItem({
+      targetPath: item.path,
+    });
 
-        if (response.ok && data.success) {
-          // alert(data.message);
-          toast.success(data.message);
-          setTimeout(() => {
-            fetchFolderTree(accountId);
-          }, 800);
-          //  fetchFolderTree(accountId);
-        } else {
-          alert(data.message || "Failed to delete");
-          toast.error(data.message);
-        }
-      } catch (err) {
-        console.error("Error deleting item:", err);
-        alert("Error deleting file or folder");
-        toast.error(err);
-      }
+    const data = res.data;
 
-      handleMenuClose();
-    };
+    if (res.status === 200 && data.success) {
+      toast.success(data.message || "Deleted successfully");
+
+      setTimeout(() => {
+        fetchFolderTree(accountId);
+      }, 500);
+    } else {
+      toast.error(data.message || "Failed to delete");
+    }
+  } catch (err) {
+    console.error("Error deleting item:", err);
+    toast.error("Error deleting file or folder");
+  }
+
+  handleMenuClose();
+};
 
     const getFileIcon = (fileName) => {
       const ext = fileName.split(".").pop().toLowerCase();

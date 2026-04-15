@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from "react";
 import {
   Drawer,
@@ -18,8 +16,15 @@ import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import axios from "axios";
 import { toast } from "material-react-toastify";
-import { FaFilePdf, FaFileWord, FaFileExcel, FaFileImage, FaFileAlt } from "react-icons/fa";
+import {
+  FaFilePdf,
+  FaFileWord,
+  FaFileExcel,
+  FaFileImage,
+  FaFileAlt,
+} from "react-icons/fa";
 import { AiFillFileUnknown } from "react-icons/ai";
+import { accountDocsAPI } from "../../services/api";
 
 const FileUploadDrawer = ({
   isOpen,
@@ -60,102 +65,95 @@ const FileUploadDrawer = ({
 
     const uploadResults = {
       successful: [],
-      failed: []
+      failed: [],
     };
 
     try {
+      const accountId = sessionStorage.getItem("accountId");
 
-      // Upload files sequentially to avoid overwhelming the server
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-              const accountId = sessionStorage.getItem("accountId");
+
         try {
           setMessage(`Uploading ${i + 1}/${files.length}: ${file.name}`);
-          
+
           const formData = new FormData();
           formData.append("files", file);
- formData.append("accountId", accountId);
-          const res = await axios.post(
-            `https://www.snptaxes.com/api/accountsdoc/file/upload?folderPath=${encodeURIComponent(
-              selectedFolder
-            )}`,
-            formData,
-            { 
-              headers: { "Content-Type": "multipart/form-data" },
-              onUploadProgress: (progressEvent) => {
-                const progress = Math.round(
-                  (progressEvent.loaded * 100) / progressEvent.total
-                );
-                setUploadProgress(prev => ({
-                  ...prev,
-                  [file.name]: progress
-                }));
-              }
-            }
-          );
+          formData.append("accountId", accountId);
+
+          const res = await accountDocsAPI.uploadFile(formData, selectedFolder);
 
           uploadResults.successful.push({
             fileName: file.name,
             filePath: `${selectedFolder}/${file.name}`,
             uploadDate: new Date().toISOString(),
-            serverResponse: res.data
+            serverResponse: res.data,
           });
-
         } catch (err) {
           console.error(`Upload error for ${file.name}:`, err);
+
           uploadResults.failed.push({
             fileName: file.name,
-            error: err
+            error: err,
           });
         }
       }
 
-      // Final message
+      // FINAL RESULT HANDLING
       if (uploadResults.failed.length === 0) {
-        setMessage(`✅ All ${uploadResults.successful.length} files uploaded successfully!`);
-        
-        // Call success callback with all uploaded files
+        setMessage(
+          `✅ All ${uploadResults.successful.length} files uploaded successfully!`,
+        );
+
         if (onUploadSuccess) {
           onUploadSuccess(uploadResults.successful);
         }
-        
+
+        // await fetchFolderTree(accountId);
+
         setTimeout(() => {
           onClose();
-        }, 2000);
-        
+        }, 1500);
       } else if (uploadResults.successful.length === 0) {
         setMessage("❌ All files failed to upload");
+
         if (onUploadError) {
           onUploadError(uploadResults.failed);
         }
       } else {
-        setMessage(`⚠ ${uploadResults.successful.length} uploaded, ${uploadResults.failed.length} failed`);
+        setMessage(
+          `⚠ ${uploadResults.successful.length} uploaded, ${uploadResults.failed.length} failed`,
+        );
+
         if (onUploadSuccess) {
           onUploadSuccess(uploadResults.successful);
         }
+
+        await fetchFolderTree(accountId);
+
         setTimeout(() => {
           onClose();
-        }, 3000);
+        }, 2500);
       }
-
     } catch (err) {
       console.error("Upload process error:", err);
+
       setMessage("❌ Error during upload process");
+
       if (onUploadError) {
-        onUploadError([{ fileName: 'Multiple files', error: err }]);
+        onUploadError([{ fileName: "Multiple files", error: err }]);
       }
     } finally {
       setIsUploading(false);
     }
   };
-
   return (
-    <Drawer 
-      anchor="right" 
-      open={isOpen} 
-      onClose={onClose}  
+    <Drawer
+      anchor="right"
+      open={isOpen}
+      onClose={onClose}
       ModalProps={{
-        keepMounted: true
+        keepMounted: true,
       }}
       sx={{
         zIndex: (theme) => theme.zIndex.modal + 1,
@@ -169,12 +167,29 @@ const FileUploadDrawer = ({
 
         {/* Display selected files info */}
         {files && files.length > 0 && (
-          <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1, maxHeight: 200, overflow: 'auto' }}>
+          <Box
+            sx={{
+              mb: 2,
+              p: 2,
+              bgcolor: "grey.100",
+              borderRadius: 1,
+              maxHeight: 200,
+              overflow: "auto",
+            }}
+          >
             <Typography variant="subtitle2" gutterBottom>
               Selected Files:
             </Typography>
             {files.map((file, index) => (
-              <Box key={index} sx={{ mb: 1, pb: 1, borderBottom: index < files.length - 1 ? '1px solid #ddd' : 'none' }}>
+              <Box
+                key={index}
+                sx={{
+                  mb: 1,
+                  pb: 1,
+                  borderBottom:
+                    index < files.length - 1 ? "1px solid #ddd" : "none",
+                }}
+              >
                 <Typography variant="body2">
                   <strong>{index + 1}.</strong> {file.name}
                 </Typography>
@@ -194,20 +209,27 @@ const FileUploadDrawer = ({
           color="primary"
           fullWidth
           onClick={handleUpload}
-          disabled={!files || files.length === 0 || !selectedFolder || isUploading}
+          disabled={
+            !files || files.length === 0 || !selectedFolder || isUploading
+          }
           sx={{ mb: 2 }}
         >
-          {isUploading ? `Uploading...` : `Upload ${files?.length || 0} File(s)`}
+          {isUploading
+            ? `Uploading...`
+            : `Upload ${files?.length || 0} File(s)`}
         </Button>
 
         {message && (
-          <Typography 
-            sx={{ 
-              mt: 2, 
-              mb: 2, 
+          <Typography
+            sx={{
+              mt: 2,
+              mb: 2,
               fontWeight: "bold",
-              color: message.includes('❌') ? 'error.main' : 
-                     message.includes('⚠') ? 'warning.main' : 'success.main'
+              color: message.includes("❌")
+                ? "error.main"
+                : message.includes("⚠")
+                  ? "warning.main"
+                  : "success.main",
             }}
           >
             {message}
@@ -225,9 +247,9 @@ const FileUploadDrawer = ({
           />
         </Box>
 
-        <Button 
-          variant="outlined" 
-          fullWidth 
+        <Button
+          variant="outlined"
+          fullWidth
           onClick={onClose}
           disabled={isUploading}
         >
@@ -276,7 +298,8 @@ const FolderTreeSelector = ({ items, onSelect, selectedFolder, level = 0 }) => {
         if (item.type !== "folder") return null;
 
         // ⛔ Skip displaying this folder completely
-        if (item.name?.toLowerCase() === "firm documents shared with client") return null;
+        if (item.name?.toLowerCase() === "firm documents shared with client")
+          return null;
 
         const isSelected = selectedFolder === item.path;
         const isExpanded = expanded[item.path];
@@ -301,7 +324,7 @@ const FolderTreeSelector = ({ items, onSelect, selectedFolder, level = 0 }) => {
                   e.stopPropagation();
                   toggleExpand(item.path);
                 }}
-                sx={{ cursor: 'pointer', minWidth: 40 }}
+                sx={{ cursor: "pointer", minWidth: 40 }}
               >
                 {isExpanded ? <FolderOpenIcon /> : <FolderIcon />}
               </ListItemIcon>
@@ -321,7 +344,7 @@ const FolderTreeSelector = ({ items, onSelect, selectedFolder, level = 0 }) => {
                       e.stopPropagation();
                       toggleExpand(item.path);
                     }}
-                    sx={{ cursor: 'pointer' }}
+                    sx={{ cursor: "pointer" }}
                   />
                 ) : (
                   <ExpandMore
@@ -329,7 +352,7 @@ const FolderTreeSelector = ({ items, onSelect, selectedFolder, level = 0 }) => {
                       e.stopPropagation();
                       toggleExpand(item.path);
                     }}
-                    sx={{ cursor: 'pointer' }}
+                    sx={{ cursor: "pointer" }}
                   />
                 ))}
             </ListItem>

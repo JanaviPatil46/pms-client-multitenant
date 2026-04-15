@@ -26,6 +26,7 @@ import {
   FaFileAlt,
 } from "react-icons/fa";
 import { AiFillFileUnknown } from "react-icons/ai";
+import { accountDocsAPI } from "../../services/api";
 const FileUploadDrawer = ({
   isOpen,
   onClose,
@@ -81,13 +82,12 @@ const FileUploadDrawer = ({
       files.forEach((file) => formData.append("files", file));
       formData.append("accountId", accountId);
 
-      const res = await axios.post(
-        `https://www.snptaxes.com/api/accountsdoc/file/upload?folderPath=${encodeURIComponent(
-          selectedFolder
-        )}`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+     const res = await accountDocsAPI.uploadFile(
+      formData,
+      selectedFolder
+    );
+
+    
  console.log("Upload Response:", res.data); 
       setMessage(`✅ ${res.data.message || "Files uploaded successfully"}`);
       toast.success(`✅ ${res.data.message || "Files uploaded successfully"}`);

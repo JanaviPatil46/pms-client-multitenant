@@ -22,6 +22,7 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 import { toast } from "material-react-toastify";
 import JSZip from "jszip";
 import axios from "axios";
+import { accountDocsAPI } from "../../services/api";
 const FolderUploadDrawer = ({
   isOpen,
   onClose,
@@ -53,34 +54,7 @@ const FolderUploadDrawer = ({
 
   const handleFolderSelect = (path) => setSelectedFolder(path);
 
-  // const handleUploadFolderSelect = (e) => {
-  //   const selectedFiles = Array.from(e.target.files);
-  //   if (selectedFiles.length === 0) return;
-
-  //   // ✅ Calculate total folder size
-  //   const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
-  //   const maxFolderSize = 100 * 1024 * 1024; // 100 MB
-
-  //   // 🚫 Restrict folder if total exceeds limit
-  //   if (totalSize > maxFolderSize) {
-  //     alert(
-  //       `❌ Folder size exceeds 100 MB limit.\nSelected folder size: ${(
-  //         totalSize /
-  //         (1024 * 1024)
-  //       ).toFixed(2)} MB`
-  //     );
-  //     e.target.value = null; // reset input
-  //     setFiles([]); // clear files state
-  //     return;
-  //   }
-
-  //   // ✅ Normal processing (unchanged)
-  //   setFiles(selectedFiles);
-
-  //   const firstPath = selectedFiles[0].webkitRelativePath;
-  //   const topLevelFolder = firstPath.split("/")[0];
-  //   setFolderName(topLevelFolder);
-  // };
+  
  const handleUploadFolderSelect = (e) => {
     const selectedFiles = Array.from(e.target.files);
     setFiles(selectedFiles);
@@ -91,99 +65,116 @@ const FolderUploadDrawer = ({
       setFolderName(topLevelFolder);
     }
   };
-  // const handleUpload = async () => {
-  //   if (files.length === 0) {
-  //     setMessage("Please select a folder first");
-  //     return;
-  //   }
+  const handleUpload = async () => {
+  if (!files.length) {
+    alert("Please select a folder first!");
+    return;
+  }
 
-  //   let targetFolderPath = selectedFolder
-  //     ? `${selectedFolder}/${folderName}`
-  //     : folderName;
+  if (!selectedFolder || selectedFolder.trim() === "") {
+    alert("Please select target path first!");
+    return;
+  }
 
-  //   targetFolderPath = targetFolderPath.replace(/\/+/g, "/");
+  let targetFolderPath = selectedFolder
+    ? `${selectedFolder}/${folderName}`
+    : folderName;
 
-  //   const formData = new FormData();
-  //   files.forEach((file) => {
-  //     formData.append("files", file, file.webkitRelativePath);
-  //   });
+  targetFolderPath = targetFolderPath.replace(/\/+/g, "/");
 
-  //   try {
-  //     const res = await fetch(
-  //       `https://www.snptaxes.com/api/accountsdoc/folder/upload?folderPath=${encodeURIComponent(
-  //         targetFolderPath
-  //       )}`,
-  //       { method: "POST", body: formData }
-  //     );
-  //     const data = await res.json();
-  //     if (res.ok) {
-  //       setMessage(`✅ Folder uploaded successfully: ${data.files.length} files`);
-  //        toast.success(`Folder uploaded successfully: ${data.files.length} files`)
-  //       fetchFolderTree();
-  //       onClose()
-  //       setFiles([]);
-  //     } else {
-  //       setMessage(`❌ Error: ${data.error}`);
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //     setMessage("Upload failed");
-  //   }
-  // };
-const handleUpload = async () => {
-    if (!files.length) {
-      alert("Please select a folder first!");
-      return;
-    }
-    // ⭐ Check target folder not selected
-    if (!selectedFolder || selectedFolder.trim() === "") {
-      alert("Please select target path first!");
-      return;
-    }
+  console.log("Target Folder Path:", targetFolderPath);
 
-    // ------------------------------
-    // ⭐ Use targetFolderPath logic
-    // ------------------------------
-    let targetFolderPath = selectedFolder
-      ? `${selectedFolder}/${folderName}`
-      : folderName;
+  setMessage("Zipping folder...");
 
-    targetFolderPath = targetFolderPath.replace(/\/+/g, "/");
-    console.log("Target Folder Path:", targetFolderPath);
-    setMessage("Zipping folder...");
+  const zip = new JSZip();
 
-    const zip = new JSZip();
-    files.forEach((file) => {
-      zip.file(file.webkitRelativePath, file);
-    });
+  files.forEach((file) => {
+    zip.file(file.webkitRelativePath, file);
+  });
 
-    const zipBlob = await zip.generateAsync({ type: "blob" });
+  const zipBlob = await zip.generateAsync({ type: "blob" });
 
-    const formData = new FormData();
-    formData.append("folderZip", zipBlob, `${folderName}.zip`);
-    formData.append("folderName", folderName);
-    formData.append("folderPath", targetFolderPath);
+  const formData = new FormData();
+  formData.append("folderZip", zipBlob, `${folderName}.zip`);
+  formData.append("folderName", folderName);
+  formData.append("folderPath", targetFolderPath);
 
-    setMessage("Uploading...");
+  setMessage("Uploading...");
 
-    try {
-      const res = await axios.post(
-        "https://snptaxes.com/api/accountsdoc/upload-folder",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-      setMessage(res.data.message || "Uploaded successfully!");
-      console.log(res.data.message);
-      toast.success(`Folder uploaded successfully`);
-      fetchFolderTree();
-      onClose();
-    } catch (err) {
-      console.error(err);
-      setMessage("Upload failed!");
-    }
-  };
+  try {
+    const res = await accountDocsAPI.uploadFolderZip(formData);
+
+    const data = res.data;
+
+    setMessage(data.message || "Uploaded successfully!");
+
+    console.log(data.message);
+
+    toast.success("Folder uploaded successfully");
+
+    await fetchFolderTree();
+    onClose();
+  } catch (err) {
+    console.error(err);
+
+    setMessage("Upload failed!");
+    toast.error("Upload failed!");
+  }
+};
+// const handleUpload = async () => {
+//     if (!files.length) {
+//       alert("Please select a folder first!");
+//       return;
+//     }
+//     // ⭐ Check target folder not selected
+//     if (!selectedFolder || selectedFolder.trim() === "") {
+//       alert("Please select target path first!");
+//       return;
+//     }
+
+//     // ------------------------------
+//     // ⭐ Use targetFolderPath logic
+//     // ------------------------------
+//     let targetFolderPath = selectedFolder
+//       ? `${selectedFolder}/${folderName}`
+//       : folderName;
+
+//     targetFolderPath = targetFolderPath.replace(/\/+/g, "/");
+//     console.log("Target Folder Path:", targetFolderPath);
+//     setMessage("Zipping folder...");
+
+//     const zip = new JSZip();
+//     files.forEach((file) => {
+//       zip.file(file.webkitRelativePath, file);
+//     });
+
+//     const zipBlob = await zip.generateAsync({ type: "blob" });
+
+//     const formData = new FormData();
+//     formData.append("folderZip", zipBlob, `${folderName}.zip`);
+//     formData.append("folderName", folderName);
+//     formData.append("folderPath", targetFolderPath);
+
+//     setMessage("Uploading...");
+
+//     try {
+//       const res = await axios.post(
+//         "https://snptaxes.com/api/accountsdoc/upload-folder",
+//         formData,
+//         {
+//           headers: { "Content-Type": "multipart/form-data" },
+//         }
+//       );
+//       setMessage(res.data.message || "Uploaded successfully!");
+//       console.log(res.data.message);
+//       toast.success(`Folder uploaded successfully`);
+//       fetchFolderTree();
+//       onClose();
+//     } catch (err) {
+//       console.error(err);
+//       setMessage("Upload failed!");
+//     }
+//   };
   return (
     <Drawer anchor="right" open={isOpen} onClose={onClose}>
       <Box sx={{ width: 400, p: 3,  height: "100%" }}>
@@ -191,25 +182,6 @@ const handleUpload = async () => {
           📁 Upload Folder
         </Typography>
 
-        
-
-        {/* <Button
-          variant="outlined"
-          component="label"
-          fullWidth
-          sx={{ mt: 1, mb: 2 }}
-        >
-          {files.length > 0 ? `${files.length} files selected` : "Select Folder"}
-          <input
-            type="file"
-            webkitdirectory="true"
-            directory=""
-            multiple
-            hidden
-            onChange={handleUploadFolderSelect}
-          />
-        </Button> */}
- {/* MUI Button instead of File Input */}
         <Button
           variant="outlined"
           color="primary"
@@ -270,103 +242,6 @@ const handleUpload = async () => {
   );
 };
 
-// // Recursive folder tree
-// const FolderTreeSelector = ({ items, onSelect, selectedFolder, level = 0 }) => {
-//   const [expanded, setExpanded] = useState({});
-
-//   const toggleExpand = (path) => {
-//     setExpanded((prev) => ({ ...prev, [path]: !prev[path] }));
-//   };
-
-//   return (
-//     <List disablePadding>
-//       {items?.map((item) => {
-//         const isExpanded = expanded[item.path];
-//         const isSelected = selectedFolder === item.path;
-
-//         if (item.type !== "folder") return null;
-
-//         return (
-//           <React.Fragment key={item.path}>
-//             <ListItem
-//               sx={{
-//                 pl: 2 + level * 2,
-//                 bgcolor: isSelected ? "#b2d8ff" : "transparent",
-//                 borderRadius: 1,
-//                 mb: 0.5,
-//                 "&:hover": { bgcolor: "#dbefff",color:'black', },
-//                 cursor: item.meta?.readOnly ? "not-allowed" : "pointer",
-//               }}
-//               onClick={() => {
-//                 if (!item.meta?.readOnly) onSelect(item.path);
-//               }}
-//             >
-//               <ListItemIcon
-//                 onClick={(e) => {
-//                   e.stopPropagation();
-//                   toggleExpand(item.path);
-//                 }}
-//               >
-//                 {isExpanded ? <FolderOpenIcon /> : <FolderIcon />}
-//               </ListItemIcon>
-
-//               <ListItemText
-//                 primary={item.name}
-//                 sx={{
-//                   fontWeight: isSelected ? "bold" : "normal",
-//                   color: isSelected ? "#0056b3" : "inherit",
-//                 }}
-//               />
-
-//               {item.children?.length > 0 &&
-//                 (isExpanded ? (
-//                   <ExpandLess
-//                     onClick={(e) => {
-//                       e.stopPropagation();
-//                       toggleExpand(item.path);
-//                     }}
-//                   />
-//                 ) : (
-//                   <ExpandMore
-//                     onClick={(e) => {
-//                       e.stopPropagation();
-//                       toggleExpand(item.path);
-//                     }}
-//                   />
-//                 ))}
-//             </ListItem>
-
-//             <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-//               {/* Subfolders */}
-//               <FolderTreeSelector
-//                 items={item.children}
-//                 onSelect={onSelect}
-//                 selectedFolder={selectedFolder}
-//                 level={level + 1}
-//               />
-
-//               {/* Files inside folder */}
-//               {item.meta?.files?.length > 0 && (
-//                 <List sx={{ pl: 4 }}>
-//                   {item.meta.files.map((file) => (
-//                     <ListItem key={file.name} sx={{ pl: 2 }}>
-//                       <ListItemIcon>
-//                         <InsertDriveFileIcon fontSize="small" />
-//                       </ListItemIcon>
-//                       <ListItemText
-//                         primary={`${file.name}${file.readOnly ? " (Read Only)" : ""}`}
-//                       />
-//                     </ListItem>
-//                   ))}
-//                 </List>
-//               )}
-//             </Collapse>
-//           </React.Fragment>
-//         );
-//       })}
-//     </List>
-//   );
-// };
 
 const FolderTreeSelector = ({ items, onSelect, selectedFolder, level = 0 }) => {
   const [expanded, setExpanded] = useState({});
@@ -388,19 +263,7 @@ const FolderTreeSelector = ({ items, onSelect, selectedFolder, level = 0 }) => {
 
         return (
           <React.Fragment key={item.path}>
-            {/* <ListItem
-              sx={{
-                pl: 2 + level * 2,
-                bgcolor: isSelected ? "#b2d8ff" : "transparent",
-                borderRadius: 1,
-                mb: 0.5,
-                "&:hover": { bgcolor: "#dbefff", color: "black" },
-                cursor: item.meta?.readOnly ? "not-allowed" : "pointer",
-              }}
-              onClick={() => {
-                if (!item.meta?.readOnly) onSelect(item.path);
-              }}
-            > */}
+            
             <ListItem
   sx={{
     pl: 2 + level * 2,

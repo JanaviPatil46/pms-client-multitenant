@@ -776,7 +776,7 @@ const trashItem = async (item) => {
     const openDocument = (fullPath, fileName) => {
       try {
         // ✅ Construct full file URL
-        const fileUrl = `https://www.snptaxes.com/uploads/accounts/${fullPath}`;
+        const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${fullPath}`;
         console.log("Opening document:", fileUrl);
 
         // ✅ Detect file extension (case-insensitive)
