@@ -1,6 +1,7 @@
 {
   "name": "mui-client-dashboard",
   "version": "0.1.0",
+  "homepage": "/client",
   "private": true,
   
   "dependencies": {
@@ -42,7 +43,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "cross-env DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS=--max-old-space-size=4096 react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -63,5 +64,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
   }
 }
