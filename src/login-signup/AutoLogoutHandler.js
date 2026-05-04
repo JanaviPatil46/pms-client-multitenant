@@ -2,11 +2,11 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'material-react-toastify';
-
+// import { toast } from 'material-react-toastify';
+import { useToast } from "../hooks/useToast";
 const AutoLogoutHandler = () => {
   const navigate = useNavigate();
-
+  const toast = useToast(); 
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem('jwtToken');

@@ -1,7 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-
+import "./index.css";
+import { ToastProvider } from "./hooks/useToast";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/Context";
 import { ToastContainer } from "material-react-toastify";
@@ -11,19 +12,9 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <BrowserRouter basename="/client">
     <AuthProvider>
+     <ToastProvider>
       <App />
-        <ToastContainer
-        position="top-right"
-        theme="light"
-        autoClose={3000}
-        hideProgressBar
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
+    </ToastProvider>
     </AuthProvider>
   </BrowserRouter>
 );
