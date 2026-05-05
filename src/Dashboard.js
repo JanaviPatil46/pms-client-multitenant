@@ -58,10 +58,10 @@ export default function Dashboard() {
       </div>
 
       {/* Page Content (add top padding equal to navbar height) */}
-      <div className="pt-20 p-6">
-        <div className="bg-white rounded-xl shadow-md p-6 min-h-[400px]">
+      <div className="pt-16">
+        {/* <div className="bg-white rounded-xl shadow-md p-6 min-h-[400px]"> */}
           <Outlet />
-        </div>
+        {/* </div> */}
       </div>
     </div>
   );

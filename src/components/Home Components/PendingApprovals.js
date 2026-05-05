@@ -61,62 +61,107 @@ setAccountName(res.data.accountName)
   const fetchInvoicesByIds = async (ids = []) => {
     try {
       if (!ids.length) return [];
-
-   
+console.log("invoices ids",ids)
        // ✅ Use API layer instead of fetch
     const fetchPromises = ids.map((id) =>
-      invoiceAPI.getPendingInvoicesByAccountId(id)
+      invoiceAPI.getInvoiceListById(id)
     );
-
+   console.log("")
       // Wait for all invoices to be fetched
       const results = await Promise.all(fetchPromises);
-
+console.log("pending invoices",results)
       // Filter only valid invoices and transform them
+      // const invoices = results
+      //   .filter((result) => result?.invoice)
+      //   .map((result) => {
+      //     const inv = result.invoice;
+
+      //     const lineItems = inv.lineItems.map((item) => ({
+      //       productName: item.productorService || "",
+      //       description: item.description || "",
+      //       rate: String(item.rate || "0.00"),
+      //       qty: String(item.quantity || "1"),
+      //       amount: String(item.amount || "0.00"),
+      //       tax: item.tax || false,
+      //       isDiscount: item.isDiscount || false,
+      //     }));
+
+      //     return {
+      //       _id: inv._id,
+      //       invoicenumber: inv.invoicenumber,
+      //       invoicedate: inv.invoicedate,
+      //       account: inv.account
+      //         ? { value: inv.account._id, label: inv.account.accountName }
+      //         : null,
+      //       invoicetemplate: inv.invoicetemplate
+      //         ? {
+      //             value: inv.invoicetemplate._id,
+      //             label: inv.invoicetemplate.templatename,
+      //           }
+      //         : null,
+      //       paymentMethod: {
+      //         value: inv.paymentMethod,
+      //         label: inv.paymentMethod,
+      //       },
+      //       teammember: inv.teammember
+      //         ? { value: inv.teammember._id, label: inv.teammember.username }
+      //         : null,
+      //       description: inv.description,
+      //       emailToClient: inv.emailinvoicetoclient,
+      //       scheduledInvoice: inv.scheduleinvoice,
+      //       payInvoiceWithCredits: inv.payInvoicewithcredits,
+      //       isEmailInvoice: inv.emailinvoicetoclient,
+      //       reminders: inv.reminders,
+      //       lineItems,
+      //       summary: inv.summary || {},
+      //     };
+      //   });
+
       const invoices = results
-        .filter((result) => result?.invoice)
-        .map((result) => {
-          const inv = result.invoice;
+  .filter((result) => result?.data?.invoice) // ✅ FIX
+  .map((result) => {
+    const inv = result.data.invoice; // ✅ FIX
 
-          const lineItems = inv.lineItems.map((item) => ({
-            productName: item.productorService || "",
-            description: item.description || "",
-            rate: String(item.rate || "0.00"),
-            qty: String(item.quantity || "1"),
-            amount: String(item.amount || "0.00"),
-            tax: item.tax || false,
-            isDiscount: item.isDiscount || false,
-          }));
+    const lineItems = inv.lineItems.map((item) => ({
+      productName: item.productorService || "",
+      description: item.description || "",
+      rate: String(item.rate || "0.00"),
+      qty: String(item.quantity || "1"),
+      amount: String(item.amount || "0.00"),
+      tax: item.tax || false,
+      isDiscount: item.isDiscount || false,
+    }));
 
-          return {
-            _id: inv._id,
-            invoicenumber: inv.invoicenumber,
-            invoicedate: inv.invoicedate,
-            account: inv.account
-              ? { value: inv.account._id, label: inv.account.accountName }
-              : null,
-            invoicetemplate: inv.invoicetemplate
-              ? {
-                  value: inv.invoicetemplate._id,
-                  label: inv.invoicetemplate.templatename,
-                }
-              : null,
-            paymentMethod: {
-              value: inv.paymentMethod,
-              label: inv.paymentMethod,
-            },
-            teammember: inv.teammember
-              ? { value: inv.teammember._id, label: inv.teammember.username }
-              : null,
-            description: inv.description,
-            emailToClient: inv.emailinvoicetoclient,
-            scheduledInvoice: inv.scheduleinvoice,
-            payInvoiceWithCredits: inv.payInvoicewithcredits,
-            isEmailInvoice: inv.emailinvoicetoclient,
-            reminders: inv.reminders,
-            lineItems,
-            summary: inv.summary || {},
-          };
-        });
+    return {
+      _id: inv._id,
+      invoicenumber: inv.invoicenumber,
+      invoicedate: inv.invoicedate,
+      account: inv.account
+        ? { value: inv.account._id, label: inv.account.accountName }
+        : null,
+      invoicetemplate: inv.invoicetemplate
+        ? {
+            value: inv.invoicetemplate._id,
+            label: inv.invoicetemplate.templatename,
+          }
+        : null,
+      paymentMethod: {
+        value: inv.paymentMethod,
+        label: inv.paymentMethod,
+      },
+      teammember: inv.teammember
+        ? { value: inv.teammember._id, label: inv.teammember.username }
+        : null,
+      description: inv.description,
+      emailToClient: inv.emailinvoicetoclient,
+      scheduledInvoice: inv.scheduleinvoice,
+      payInvoiceWithCredits: inv.payInvoicewithcredits,
+      isEmailInvoice: inv.emailinvoicetoclient,
+      reminders: inv.reminders,
+      lineItems,
+      summary: inv.summary || {},
+    };
+  });
 
       return invoices;
     } catch (error) {
@@ -134,7 +179,9 @@ setAccountName(res.data.accountName)
     if (hasPendingInvoice) {
       // 🔒 Show invoice dialog FIRST
       // setSelectedInvoiceFile(doc);
+      console.log("invoice lock id",doc.meta.invoiceLock)
       const invoices = await fetchInvoicesByIds(doc.meta.invoiceLock);
+
       console.log("fetched invoices for dialog", invoices);
       // Save for dialog
       

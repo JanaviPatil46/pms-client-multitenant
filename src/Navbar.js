@@ -10,7 +10,7 @@ import EventNoteIcon from "@mui/icons-material/EventNote";
 import ArticleIcon from "@mui/icons-material/Article";
 import PaymentsIcon from "@mui/icons-material/Payments";
 import SettingsIcon from "@mui/icons-material/Settings";
-
+import Logo from "./Images/snplogo-removebg-preview.png";
 // ✅ Your existing API
 import { sidebarAPI, accountsAPI } from "./services/api";
 
@@ -57,6 +57,7 @@ export default function Navbar() {
       try {
         const res = await accountsAPI.getAccountById(accountId);
         setAccountInfo(res.data);
+        console.log("accountinfo", res.data);
       } catch (err) {
         console.error(err);
       }
@@ -86,20 +87,23 @@ export default function Navbar() {
     localStorage.removeItem("token");
     navigate("/login");
   };
-
   return (
-    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 rounded-b-2xl shadow-md">
-      
+    <div
+      className="
+    sticky top-0 z-50
+    bg-card text-card-foreground
+    border-b border-border
+    px-6 py-3
+  "
+    >
       <div className="flex items-center justify-between">
-        
         {/* LEFT */}
         <div className="flex items-center gap-6">
-          
           {/* Logo */}
-          <div className="text-2xl font-bold">≈</div>
+          <img src={Logo} className="h-9 object-contain" />
 
-          {/* 🔥 MENU FROM YOUR API */}
-          <div className="flex items-center gap-2">
+          {/* MENU */}
+          <div className="flex items-center gap-1">
             {menuItems.map((item) => {
               const Icon = iconMapping[item.icon];
 
@@ -111,11 +115,14 @@ export default function Navbar() {
                 <NavLink
                   key={item._id}
                   to={item.path}
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition ${
+                  className={`
+                  flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition
+                  ${
                     isActive
-                      ? "bg-white/20"
-                      : "hover:bg-white/10"
-                  }`}
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted"
+                  }
+                `}
                 >
                   {Icon && <Icon fontSize="small" />}
                   <span>{item.label}</span>
@@ -127,24 +134,37 @@ export default function Navbar() {
 
         {/* RIGHT */}
         <div className="flex items-center gap-4">
-          
           {/* Search */}
-          <div className="flex items-center bg-white/20 px-3 py-1 rounded-lg">
-            <Search size={16} />
+          <div
+            className="
+          flex items-center gap-2
+          bg-muted px-3 py-1.5 rounded-lg
+          border border-border
+        "
+          >
+            <Search size={16} className="text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search"
-              className="bg-transparent outline-none px-2 text-sm placeholder-white"
+              placeholder="Search..."
+              className="
+              bg-transparent outline-none text-sm
+              placeholder:text-muted-foreground
+            "
             />
           </div>
 
           {/* Dark Mode */}
-          <button onClick={toggleDarkMode}>
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-lg hover:bg-muted transition"
+          >
             {darkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
           {/* Notification */}
-          <Bell className="cursor-pointer" />
+          <button className="p-2 rounded-lg hover:bg-muted transition">
+            <Bell size={18} />
+          </button>
 
           {/* PROFILE */}
           <div className="relative">
@@ -152,40 +172,83 @@ export default function Navbar() {
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center gap-2 cursor-pointer"
             >
-              <img
-                src={accountInfo?.profilePicture || "https://i.pravatar.cc/40"}
-                className="w-8 h-8 rounded-full"
-              />
+              {/* Avatar */}
+              <div
+                className="
+              w-9 h-9 rounded-full overflow-hidden
+              bg-muted flex items-center justify-center
+              border border-border
+            "
+              >
+                {accountInfo?.profilePicture ? (
+                  <img
+                    src={`${process.env.REACT_APP_ACCOUNT_CONTACT}/${accountInfo.profilePicture}`}
+                    alt="profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-sm font-semibold text-muted-foreground">
+                    {accountInfo?.accountName?.charAt(0)?.toUpperCase() || "U"}
+                  </span>
+                )}
+              </div>
+
               <ChevronDown size={16} />
             </div>
 
+            {/* DROPDOWN */}
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 text-black dark:text-white rounded-lg shadow-lg">
-                
-                <div className="px-4 py-2 border-b dark:border-gray-700">
-                  <p className="font-medium text-sm">
-                    {accountInfo?.accountName || "User"}
-                  </p>
-                  <p className="text-xs text-gray-500">{email}</p>
+              <div
+                className="
+              absolute right-0 mt-2 w-56
+              bg-popover text-popover-foreground
+              border border-border
+              rounded-xl shadow-md overflow-hidden
+            "
+              >
+                {/* USER INFO */}
+                <div className="px-4 py-3 border-b border-border flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                    {accountInfo?.profilePicture ? (
+                      <img
+                        src={`${process.env.REACT_APP_ACCOUNT_CONTACT}/${accountInfo.profilePicture}`}
+                        alt="profile"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        {accountInfo?.accountName?.charAt(0)?.toUpperCase() ||
+                          "U"}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="font-medium text-sm">
+                      {accountInfo?.accountName || "User"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{email}</p>
+                  </div>
                 </div>
 
+                {/* MENU ITEMS */}
                 <button
                   onClick={() => navigate("/profile")}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="w-full text-left px-4 py-2 hover:bg-muted transition"
                 >
                   Profile
                 </button>
 
                 <button
                   onClick={() => navigate("/settings")}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="w-full text-left px-4 py-2 hover:bg-muted transition"
                 >
                   Settings
                 </button>
 
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="w-full text-left px-4 py-2 text-destructive hover:bg-muted transition"
                 >
                   Logout
                 </button>
@@ -194,11 +257,6 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-
-      {/* TITLE */}
-      {/* <div className="mt-6">
-        <h1 className="text-3xl font-semibold">Dashboard</h1>
-      </div> */}
     </div>
   );
 }

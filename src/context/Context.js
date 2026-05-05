@@ -124,7 +124,7 @@ export const AuthProvider = ({ children }) => {
   // ================= LOGOUT =================
   const logout = useCallback(() => {
     clearAuth();
-    navigate("/login", { replace: true });
+    navigate("/client/login", { replace: true });
     toast.info("Logged out");
   }, [clearAuth, navigate]);
 
