@@ -455,7 +455,7 @@ const LoginPage = () => {
       if (accounts.length === 1) {
         setSelectedAccount(accounts[0]._id);
         
-        toast.success("Login successful!");
+        // toast.success("Login successful!");
         
         setTimeout(() => {
           navigate("/home", { replace: true });

@@ -845,53 +845,174 @@ const ProposalPreviewDialog = ({ open, handleClose, proposal }) => {
                 )}
 
                 {/* SIGNATURE */}
-                <div ref={signatureRef} className="mb-8 max-w-lg">
-                  <h2 className="text-base font-semibold text-foreground mb-2">
-                    Sign & Accept
-                  </h2>
+             {/* SIGNATURE */}
+<div ref={signatureRef} className="mb-8 max-w-lg">
+  <h2 className="text-base font-semibold text-foreground mb-2">
+    Sign & Accept
+  </h2>
 
-                  <hr className="border-border mb-4" />
+  <hr className="border-border mb-4" />
 
-                  {proposal?.status === "Signed" ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <CheckCircle size={15} className="text-success" />
-                        Signed on {new Date(proposal.signedAt).toLocaleString()}
-                      </div>
+  {proposal?.status === "Signed" ? (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <CheckCircle size={15} className="text-success" />
+        Signed on {new Date(proposal.signedAt).toLocaleString()}
+      </div>
 
-                      <p className="text-sm font-semibold text-foreground">
-                        Signature:
-                      </p>
+      <p className="text-sm font-semibold text-foreground">
+        Signature:
+      </p>
 
-                      {proposal?.signature?.startsWith("data:image") ? (
-                        <img
-                          src={proposal.signature}
-                          alt="signature"
-                          className="max-w-xs rounded-lg border border-border bg-card p-2"
-                        />
-                      ) : (
-                        <div className="rounded-lg border border-border bg-muted px-5 py-4 text-2xl font-[cursive] text-foreground">
-                          {proposal.signature}
-                        </div>
-                      )}
+      {proposal?.signature?.startsWith("data:image") ? (
+        <img
+          src={proposal.signature}
+          alt="signature"
+          className="max-w-xs rounded-lg border border-border bg-card p-2"
+        />
+      ) : (
+        <div className="rounded-lg border border-border bg-muted px-5 py-4 text-2xl font-[cursive] text-foreground">
+          {proposal.signature}
+        </div>
+      )}
 
-                      <button
-                        disabled
-                        className="rounded-lg bg-primary/50 px-4 py-2 text-sm font-semibold text-primary-foreground opacity-60 cursor-not-allowed"
-                      >
-                        Already Signed
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleCompleteProposal}
-                      className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition"
-                    >
-                      Complete Proposal
-                    </button>
-                  )}
-                </div>
+      <button
+        disabled
+        className="rounded-lg bg-primary/50 px-4 py-2 text-sm font-semibold text-primary-foreground opacity-60 cursor-not-allowed"
+      >
+        Already Signed
+      </button>
+    </div>
+  ) : (
+    <div className="space-y-5">
+
+      {/* Toggle */}
+      <div className="flex rounded-lg border border-border overflow-hidden w-fit">
+        {["draw", "type"].map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setSignatureType(t)}
+            className={`px-5 py-2 text-sm font-medium transition-colors ${
+              signatureType === t
+                ? "bg-primary text-primary-foreground"
+                : "bg-background text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            {t === "draw" ? "Draw" : "Type"}
+          </button>
+        ))}
+      </div>
+
+      {/* DRAW SIGNATURE */}
+      {signatureType === "draw" && (
+        <div className="space-y-3">
+          <div className="rounded-lg border border-border bg-muted overflow-hidden">
+            <SignatureCanvas
+              ref={sigCanvas}
+              penColor="black"
+              canvasProps={{
+                width: 500,
+                height: 200,
+                className: "w-full",
+                style: { background: "transparent" },
+              }}
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => sigCanvas.current.clear()}
+              className="flex-1 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted transition"
+            >
+              Clear
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (sigCanvas.current.isEmpty()) {
+                  toast.warning("Please draw your signature first");
+                  return;
+                }
+                setSignatureData(
+                  sigCanvas.current.toDataURL("image/png")
+                );
+              }}
+              className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition shadow-sm"
+            >
+              Save Signature
+            </button>
+          </div>
+
+          {signatureData && (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5 text-sm text-success">
+                <CheckCircle size={14} />
+                Signature saved successfully
+              </div>
+
+              <img
+                src={signatureData}
+                alt="preview"
+                className="max-w-xs rounded-lg border border-border bg-card p-2"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TYPE SIGNATURE */}
+      {signatureType === "type" && (
+        <div className="space-y-3">
+          <input
+            type="text"
+            placeholder="Type your full name"
+            value={typedSignature}
+            onChange={(e) => setTypedSignature(e.target.value)}
+            className="w-full rounded-lg border border-border bg-background px-3 py-3 text-2xl font-[cursive] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+
+          {typedSignature && (
+            <div className="rounded-lg border border-border bg-muted px-5 py-5 text-2xl font-[cursive] text-foreground">
+              {typedSignature}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TERMS */}
+      <label className="flex items-start gap-2.5 cursor-pointer select-none mt-2">
+        <input
+          type="checkbox"
+          checked={termsAccepted}
+          onChange={(e) => setTermsAccepted(e.target.checked)}
+          className="mt-1 accent-primary"
+        />
+        <span className="text-sm text-foreground">
+          I accept the Terms & Conditions
+        </span>
+      </label>
+
+      {/* COMPLETE BUTTON */}
+      <button
+        type="button"
+        disabled={
+          isSigning ||
+          !termsAccepted ||
+          (signatureType === "draw"
+            ? !signatureData
+            : !typedSignature)
+        }
+        onClick={handleCompleteProposal}
+        className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isSigning ? "Saving..." : "Complete Proposal"}
+      </button>
+    </div>
+  )}
+</div>
 
               </div>
             </div>

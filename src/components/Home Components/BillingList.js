@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
-import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-import { useTheme } from "@mui/material/styles";
-import { Stack, Typography } from "@mui/material";
-import PaymentIcon from "@mui/icons-material/Payment";
+// import Box from "@mui/material/Box";
+// import Paper from "@mui/material/Paper";
+// import { useTheme } from "@mui/material/styles";
+// import { Stack, Typography } from "@mui/material";
+// import PaymentIcon from "@mui/icons-material/Payment";
 import { useNavigate } from "react-router-dom";
 import { invoiceAPI } from "../../services/api"; // ✅ adjust path if needed
 import { CreditCard, ArrowRight } from "lucide-react";
 const BillingList = ({ accountId }) => {
-  const theme = useTheme();
+  // const theme = useTheme();
   const navigate = useNavigate();
 
   const [billingInvoices, setBillingInvoices] = useState([]);

@@ -106,7 +106,8 @@ import PendingApprovals from "../components/Home Components/PendingApprovals";
 import { accountsAPI } from '../services/api';
 import { PageTransition, FadeIn, HomeItemSkeletonRows } from "../components/ui/motion";
 // import useShortcuts from "../src/hooks/useShortcuts";
-
+import DocuSealWrapper from "../components/Home Components/DocuSealWrapper"
+import DocuSealMultiSigner from "../components/Home Components/DocuSealMultiSigner";
 const ease = [0.16, 1, 0.3, 1];
 
 const containerVariants = {
@@ -327,6 +328,8 @@ const Home = () => {
                 <BillingList accountId={accountId} />
                 <ChatsList accountId={accountId} />
                 <ProposalsList accountId={accountId} />
+                <DocuSealWrapper accountId={accountId} />
+                  <DocuSealMultiSigner accountId={accountId} />
                 <PendingApprovals accountId={accountId} adminUserId={adminUserId} />
               </>
             )}

@@ -1,63 +1,42 @@
 
+// import React, { useState, useEffect, useCallback } from "react";
 // import {
-//   MenuItem,
-//   Select,
-//   FormControl,
 //   Dialog,
-//   DialogContent,
-//   Typography,
 //   DialogTitle,
-//   IconButton,
+//   DialogContent,
 //   Box,
-//   TextField,
+//   Typography,
 //   Button,
+//   TextField,
+//   FormControl,
+//   Select,
+//   MenuItem,
+//   LinearProgress,
+//   IconButton,
 //   Chip,
 // } from "@mui/material";
-// import { LinearProgress } from "@mui/material";
 // import CloseIcon from "@mui/icons-material/Close";
-// import DeleteIcon from "@mui/icons-material/Delete";
-// import { useState, useEffect, useCallback, useRef } from "react";
-// import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-// import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-// import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-// import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 // import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-// import { toast } from "material-react-toastify";
+// import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+// import AddIcon from "@mui/icons-material/Add";
+// import DeleteIcon from "@mui/icons-material/Delete";
+// import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+// import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 // import dayjs from "dayjs";
 // import { debounce } from "lodash";
-// import AddIcon from "@mui/icons-material/Add";
-// import SaveIcon from "@mui/icons-material/Save";
-
-// import { useContactAuth } from "../../context/Context";
-// import SelectableButton from "./SelectableButton";
-// import FileUploadDrawer from "./FileUploadDrawer";
-// import { accountsAPI, organizerAPI, accountDocsAPI } from "../../services/api";
+// import { organizerAPI, accountsAPI, docAPI, authAPI, accountDocsAPI } from "../../services/api"; // Adjust import path as needed
+// import FileUploadDrawer from "./FileUploadDrawer"; // Adjust import path as needed
+// import SelectableButton from "./SelectableButton"; // Adjust import path as needed
+// import { useToast } from "../../hooks/useToast";
 
 // const OrganizerDialog = ({ open, handleClose, organizer }) => {
-//   const { user, accountId: contextAccountId } = useContactAuth();
 //   const [accountName, setAccountName] = useState("");
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [isSaving, setIsSaving] = useState(false);
-//   const [username, setUsername] = useState("");
-
-//   // Get accountId from context or sessionStorage
-//   const accountId = contextAccountId || sessionStorage.getItem("accountId");
-
-//   // Set username from context user
-//   useEffect(() => {
-//     if (user) {
-//       const userName = user.firstName && user.lastName 
-//         ? `${user.firstName} ${user.lastName}` 
-//         : user.email;
-//       setUsername(userName);
-//     }
-//   }, [user]);
-
+//   const [accId] = useState(sessionStorage.getItem("accountId"));
+// const toast=useToast()
 //   const fetchAccountDetails = async () => {
-//     if (!accountId) return;
 //     try {
-//       const res = await accountsAPI.getAccountById(accountId);
-//       setAccountName(res.data.accountName || "");
+//       const res = await accountsAPI.getAccountById(accId);
+//       setAccountName(res.data.accountName);
 //     } catch (error) {
 //       console.error("Error fetching account details:", error);
 //     }
@@ -65,33 +44,34 @@
 
 //   useEffect(() => {
 //     fetchAccountDetails();
-//   }, [accountId]);
+//   }, [accId]);
+
+  
+
+  
+
+//   const [accountId, setAccountId] = useState(
+//     sessionStorage.getItem("accountId")
+//   );
+
+
 
 //   const [folderTree, setFolderTree] = useState([]);
 //   const [error, setError] = useState("");
 
+//   useEffect(() => {
+//     fetchFolderTree(accountId);
+//   }, [accountId]);
+
 //   const fetchFolderTree = async (accountId) => {
-//     if (!accountId) return;
-    
 //     try {
 //       const res = await accountDocsAPI.clientListFoldersAndFiles(accountId);
-//       if (res.data && res.data.contents) {
-//         setFolderTree(res.data.contents);
-//       } else {
-//         setFolderTree([]);
-//       }
+//       console.log("janavi patil", res.data);
+//       setFolderTree(res.data.contents);
 //     } catch (err) {
-//       console.error("Error fetching folder tree:", err);
 //       setError("Error fetching folder tree");
-//       setFolderTree([]);
 //     }
 //   };
-
-//   useEffect(() => {
-//     if (accountId) {
-//       fetchFolderTree(accountId);
-//     }
-//   }, [accountId]);
 
 //   const sections = organizer?.sections;
 
@@ -102,6 +82,7 @@
 //   const [checkboxValues, setCheckboxValues] = useState({});
 //   const [answeredElements, setAnsweredElements] = useState({});
 //   const [activeStep, setActiveStep] = useState(0);
+
 //   const [dateValues, setDateValues] = useState({});
 //   const [uploadedFiles, setUploadedFiles] = useState({});
 //   const [selectedFiles, setSelectedFiles] = useState({});
@@ -110,12 +91,7 @@
 //   const [validationErrors, setValidationErrors] = useState({});
 //   const [pendingFiles, setPendingFiles] = useState({});
 //   const [previousVisibleSections, setPreviousVisibleSections] = useState([]);
-  
-//   // Use ref to track if initial load is done
-//   const isInitialLoadRef = useRef(true);
-//   const isAutoSaveEnabledRef = useRef(false);
 
-//   // Helper function to clear all values for a specific section
 //   const clearSectionValues = useCallback((sectionId) => {
 //     const numericSectionId = Number(sectionId);
     
@@ -247,6 +223,8 @@
 //       const baseId = Number(sectionId);
 //       const newRepeatId = baseId + (currentRepeats.length + 1) * 1000000;
       
+//       console.log(`Adding repeated section: Base=${sectionId}, New=${newRepeatId}`);
+      
 //       return {
 //         ...prev,
 //         [sectionId]: [...currentRepeats, newRepeatId],
@@ -269,7 +247,8 @@
 //   };
 
 //   const cleanUpSectionData = (sectionId) => {
-//     const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+//     const numericSectionId =
+//       typeof sectionId === "string" ? Number(sectionId) : sectionId;
 
 //     setInputValues((prev) => {
 //       const newValues = { ...prev };
@@ -363,7 +342,8 @@
 //   };
 
 //   const handleDateChange = (newValue, elementText, sectionId) => {
-//     const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+//     const numericSectionId =
+//       typeof sectionId === "string" ? Number(sectionId) : sectionId;
 //     const key = `${numericSectionId}_${elementText}`;
 
 //     setDateValues((prev) => ({
@@ -391,7 +371,8 @@
 //   };
 
 //   const handleFileSelect = (event, elementText, sectionId) => {
-//     const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+//     const numericSectionId =
+//       typeof sectionId === "string" ? Number(sectionId) : sectionId;
 //     const key = `${numericSectionId}_${elementText}`;
 //     const files = event.target.files;
 
@@ -420,6 +401,7 @@
 
 //     if (fileName) {
 //       const fileInfo = uploadedFiles[key]?.find((f) => f.fileName === fileName);
+//       console.log("fileInfo", fileInfo);
 
 //       if (!fileInfo) return;
 
@@ -431,22 +413,13 @@
 //         if (!confirmDelete) return;
 
 //         if (fileInfo.filePath) {
-//           const deleteResponse = await fetch(
-//             "https://www.snptaxes.com/api/accountsdoc/delete",
-//             {
-//               method: "POST",
-//               headers: { "Content-Type": "application/json" },
-//               body: JSON.stringify({
-//                 targetPath: `${fileInfo.filePath}`,
-//               }),
-//             }
-//           );
+//           const deleteResponse = await docAPI.deleteItem({
+//             targetPath: `${fileInfo.filePath}`,
+//           });
 
-//           const deleteData = await deleteResponse.json();
-
-//           if (!deleteResponse.ok || !deleteData.success) {
+//           if (!deleteResponse.data.success) {
 //             throw new Error(
-//               deleteData.message || "Failed to delete file from storage"
+//               deleteResponse.data.message || "Failed to delete file from storage"
 //             );
 //           }
 //         }
@@ -491,22 +464,13 @@
 
 //         for (const fileInfo of fileInfos) {
 //           if (fileInfo.filePath) {
-//             const deleteResponse = await fetch(
-//               "https://www.snptaxes.com/api/accountsdoc/delete",
-//               {
-//                 method: "POST",
-//                 headers: { "Content-Type": "application/json" },
-//                 body: JSON.stringify({
-//                   targetPath: `${fileInfo.filePath}/${fileInfo.fileName}`,
-//                 }),
-//               }
-//             );
+//             const deleteResponse = await docAPI.deleteItem({
+//               targetPath: `${fileInfo.filePath}/${fileInfo.fileName}`,
+//             });
 
-//             const deleteData = await deleteResponse.json();
-
-//             if (!deleteResponse.ok || !deleteData.success) {
+//             if (!deleteResponse.data.success) {
 //               throw new Error(
-//                 deleteData.message || "Failed to delete file from storage"
+//                 deleteResponse.data.message || "Failed to delete file from storage"
 //               );
 //             }
 //           }
@@ -544,141 +508,20 @@
 //     }
 //   };
 
-//   // Auto-save function using axios
-//   const autoSaveOrganizer = useCallback(async (data) => {
-//     if (!organizer?._id || organizer?.status === "Completed") {
-//       return;
-//     }
-    
-//     if (!isAutoSaveEnabledRef.current) {
-//       return;
-//     }
-    
-//     try {
-//       await organizerAPI.autoSaveOrganizer(organizer._id, data);
-//       console.log("Auto-save successful");
-//     } catch (error) {
-//       console.error("Error auto-saving organizer:", error);
-//     }
-//   }, [organizer?._id, organizer?.status]);
-
-//   // Manual save function
-//   const manualSave = useCallback(async () => {
-//     if (!organizer?._id || organizer?.status === "Completed") {
-//       toast.warning("Cannot save completed organizer");
-//       return;
-//     }
-    
-//     setIsSaving(true);
-//     const data = prepareSubmitData(false);
-//     try {
-//       await organizerAPI.autoSaveOrganizer(organizer._id, data);
-//       toast.success("Progress saved successfully!");
-//     } catch (error) {
-//       console.error("Error saving organizer:", error);
-//       toast.error("Failed to save progress");
-//     } finally {
-//       setIsSaving(false);
-//     }
-//   }, [organizer?._id, organizer?.status, prepareSubmitData]);
-
-//   // Debounced auto-save
 //   const debouncedAutoSave = useCallback(
-//     debounce((data) => {
-//       autoSaveOrganizer(data);
-//     }, 3000),
-//     [autoSaveOrganizer]
+//     debounce(async (data) => {
+//       try {
+//         const response = await organizerAPI.updateOrganizerAccountWise(organizer._id, data);
+//         console.log("Auto-save successful", response.data);
+//       } catch (error) {
+//         console.error("Error auto-saving organizer:", error);
+//       }
+//     }, 2000),
+//     [organizer?._id]
 //   );
 
-//   // Memoized shouldShowSection to prevent recreation
-//   const shouldShowSection = useCallback((section) => {
-//     if (!section.sectionsettings?.conditional) return true;
-
-//     const conditions = section.sectionsettings.conditions || [];
-//     const mode = section.sectionsettings.mode || "All";
-
-//     if (conditions.length === 0) return true;
-
-//     let matchedConditions = 0;
-
-//     conditions.forEach((condition) => {
-//       if (!condition.question || !condition.answer) return;
-
-//       let conditionMet = false;
-
-//       // Check radio values
-//       for (const key in radioValues) {
-//         if (key.endsWith(`_${condition.question}`)) {
-//           if (radioValues[key] === condition.answer) {
-//             conditionMet = true;
-//             break;
-//           }
-//         }
-//       }
-      
-//       if (conditionMet) {
-//         matchedConditions++;
-//         if (mode === "Any") return;
-//         return;
-//       }
-
-//       // Check checkbox values
-//       for (const key in checkboxValues) {
-//         if (key.endsWith(`_${condition.question}`)) {
-//           const checkboxSectionAnswer = checkboxValues[key]?.[condition.answer];
-//           if (checkboxSectionAnswer) {
-//             conditionMet = true;
-//             break;
-//           }
-//         }
-//       }
-//       if (conditionMet) {
-//         matchedConditions++;
-//         if (mode === "Any") return;
-//         return;
-//       }
-
-//       // Check dropdown values
-//       for (const key in selectedDropdownValues) {
-//         if (key.endsWith(`_${condition.question}`)) {
-//           if (selectedDropdownValues[key] === condition.answer) {
-//             conditionMet = true;
-//             break;
-//           }
-//         }
-//       }
-//       if (conditionMet) {
-//         matchedConditions++;
-//         if (mode === "Any") return;
-//         return;
-//       }
-
-//       // Check yes/no values
-//       for (const key in selectedYesNoValues) {
-//         if (key.endsWith(`_${condition.question}`)) {
-//           if (selectedYesNoValues[key] === condition.answer) {
-//             conditionMet = true;
-//             break;
-//           }
-//         }
-//       }
-//       if (conditionMet) {
-//         matchedConditions++;
-//         if (mode === "Any") return;
-//       }
-//     });
-
-//     if (mode === "Any") {
-//       return matchedConditions > 0;
-//     } else {
-//       return matchedConditions === conditions.length;
-//     }
-//   }, [radioValues, checkboxValues, selectedDropdownValues, selectedYesNoValues]);
-
-//   // Function to get visible sections
-//   const getVisibleSections = useCallback(() => {
+//   const getVisibleSections = () => {
 //     const currentlyVisible = (sections || []).filter(shouldShowSection);
-    
 //     const allSections = [];
 
 //     currentlyVisible.forEach((section) => {
@@ -701,9 +544,9 @@
 //     });
 
 //     return allSections;
-//   }, [sections, shouldShowSection, repeatedSections]);
+//   };
 
-//   const prepareSubmitData = useCallback((finalSubmit = false) => {
+//   const prepareSubmitData = (finalSubmit = false) => {
 //     const allVisibleSections = getVisibleSections();
     
 //     const sectionsData = allVisibleSections.map((section) => {
@@ -764,7 +607,7 @@
 //                     fileName: fileInfo.fileName,
 //                     filePath: fileInfo.filePath || "",
 //                     uploadDate: fileInfo.uploadDate || new Date().toISOString(),
-//                     uploadedBy: accountName || username,
+//                     uploadedBy: accountName ,
 //                   }));
 //                   questionData.textvalue = completedFiles
 //                     .map((f) => f.fileName)
@@ -785,17 +628,21 @@
 //     const data = {
 //       sections: sectionsData,
 //       status: finalSubmit ? "Completed" : "In Progress",
-//       completedby: accountName || username,
+//       completedby: accountName,
 //       active: true,
 //       repeatedSections: repeatedSections,
 //     };
 
-//     return data;
-//   }, [getVisibleSections, sections, uploadedFiles, accountName, username, repeatedSections]);
+//     console.log("Data being saved to backend:", JSON.stringify(data, null, 2));
+//     console.log("Total sections in data:", sectionsData.length);
+//     console.log("Total visible sections:", allVisibleSections.length);
+//     console.log("Status in prepareSubmitData:", data.status, "finalSubmit:", finalSubmit);
 
-//   // Auto-save effect with proper dependencies
+//     return data;
+//   };
+
 //   useEffect(() => {
-//     if (open && organizer?._id && organizer?.status !== "Completed" && isAutoSaveEnabledRef.current) {
+//     if (open && organizer?._id && organizer?.status !== "Completed") {
 //       const data = prepareSubmitData(false);
 //       debouncedAutoSave(data);
 //     }
@@ -811,20 +658,8 @@
 //     dateValues,
 //     uploadedFiles,
 //     repeatedSections,
-//     prepareSubmitData,
 //     debouncedAutoSave,
 //   ]);
-
-//   // Enable auto-save after initial load
-//   useEffect(() => {
-//     if (open && organizer?._id && !isInitialLoadRef.current) {
-//       // Small delay to ensure all states are stable
-//       const timer = setTimeout(() => {
-//         isAutoSaveEnabledRef.current = true;
-//       }, 1000);
-//       return () => clearTimeout(timer);
-//     }
-//   }, [open, organizer?._id]);
 
 //   useEffect(() => {
 //     return () => {
@@ -833,7 +668,8 @@
 //   }, [debouncedAutoSave]);
 
 //   const handleRadioChange = (value, elementText, sectionId) => {
-//     const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+//     const numericSectionId =
+//       typeof sectionId === "string" ? Number(sectionId) : sectionId;
 //     const key = `${numericSectionId}_${elementText}`;
 //     setRadioValues((prevValues) => ({
 //       ...prevValues,
@@ -859,7 +695,8 @@
 //   };
 
 //   const handleCheckboxChange = (value, elementText, sectionId) => {
-//     const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+//     const numericSectionId =
+//       typeof sectionId === "string" ? Number(sectionId) : sectionId;
 //     const key = `${numericSectionId}_${elementText}`;
 //     setCheckboxValues((prevValues) => ({
 //       ...prevValues,
@@ -888,7 +725,8 @@
 //   };
 
 //   const handleYesNoChange = (value, elementText, sectionId) => {
-//     const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+//     const numericSectionId =
+//       typeof sectionId === "string" ? Number(sectionId) : sectionId;
 //     const key = `${numericSectionId}_${elementText}`;
 //     setSelectedYesNoValues((prevValues) => ({
 //       ...prevValues,
@@ -914,7 +752,8 @@
 //   };
 
 //   const handleInputChange = (event, elementText, sectionId) => {
-//     const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+//     const numericSectionId =
+//       typeof sectionId === "string" ? Number(sectionId) : sectionId;
 //     const key = `${numericSectionId}_${elementText}`;
 //     const { value } = event.target;
 //     setInputValues((prevValues) => ({
@@ -941,7 +780,8 @@
 //   };
 
 //   const handleDropdownValueChange = (event, elementText, sectionId) => {
-//     const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+//     const numericSectionId =
+//       typeof sectionId === "string" ? Number(sectionId) : sectionId;
 //     const key = `${numericSectionId}_${elementText}`;
 //     setSelectedDropdownValues((prevValues) => ({
 //       ...prevValues,
@@ -966,7 +806,87 @@
 //     }
 //   };
 
-//   // Separate effect to handle section clearing logic
+//   const shouldShowSection = useCallback((section) => {
+//     if (!section.sectionsettings?.conditional) return true;
+
+//     const conditions = section.sectionsettings.conditions || [];
+//     const mode = section.sectionsettings.mode || "All";
+
+//     if (conditions.length === 0) return true;
+
+//     let matchedConditions = 0;
+
+//     conditions.forEach((condition) => {
+//       if (!condition.question || !condition.answer) return;
+
+//       let conditionMet = false;
+
+//       for (const key in radioValues) {
+//         if (key.endsWith(`_${condition.question}`)) {
+//           const answerInThisSection = radioValues[key];
+//           if (answerInThisSection === condition.answer) {
+//             conditionMet = true;
+//             break;
+//           }
+//         }
+//       }
+      
+//       if (conditionMet) {
+//         matchedConditions++;
+//         if (mode === "Any") return;
+//         return;
+//       }
+
+//       for (const key in checkboxValues) {
+//         if (key.endsWith(`_${condition.question}`)) {
+//           const checkboxSectionAnswer = checkboxValues[key]?.[condition.answer];
+//           if (checkboxSectionAnswer) {
+//             conditionMet = true;
+//             break;
+//           }
+//         }
+//       }
+//       if (conditionMet) {
+//         matchedConditions++;
+//         if (mode === "Any") return;
+//         return;
+//       }
+
+//       for (const key in selectedDropdownValues) {
+//         if (key.endsWith(`_${condition.question}`)) {
+//           if (selectedDropdownValues[key] === condition.answer) {
+//             conditionMet = true;
+//             break;
+//           }
+//         }
+//       }
+//       if (conditionMet) {
+//         matchedConditions++;
+//         if (mode === "Any") return;
+//         return;
+//       }
+
+//       for (const key in selectedYesNoValues) {
+//         if (key.endsWith(`_${condition.question}`)) {
+//           if (selectedYesNoValues[key] === condition.answer) {
+//             conditionMet = true;
+//             break;
+//           }
+//         }
+//       }
+//       if (conditionMet) {
+//         matchedConditions++;
+//         if (mode === "Any") return;
+//       }
+//     });
+
+//     if (mode === "Any") {
+//       return matchedConditions > 0;
+//     } else {
+//       return matchedConditions === conditions.length;
+//     }
+//   }, [radioValues, checkboxValues, selectedDropdownValues, selectedYesNoValues]);
+
 //   useEffect(() => {
 //     if (!sections) return;
     
@@ -991,7 +911,7 @@
 //   const visibleSections = getVisibleSections();
 //   const totalSteps = visibleSections.length;
 
-//   const shouldShowElement = useCallback((element, sectionId) => {
+//   const shouldShowElement = (element, sectionId) => {
 //     const settings = element.questionsectionsettings;
 //     if (!settings?.conditional) return true;
 
@@ -1007,9 +927,9 @@
 //       if (!question || !answer) continue;
 
 //       let conditionMet = false;
+
 //       const currentSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
 
-//       // Check radio values
 //       for (const key in radioValues) {
 //         const [keySectionId] = key.split("_");
 //         const numericKeySectionId = Number(keySectionId);
@@ -1030,7 +950,6 @@
 //         else continue;
 //       }
 
-//       // Check checkbox values
 //       for (const key in checkboxValues) {
 //         const [keySectionId] = key.split("_");
 //         const numericKeySectionId = Number(keySectionId);
@@ -1051,7 +970,6 @@
 //         else continue;
 //       }
 
-//       // Check dropdown values
 //       for (const key in selectedDropdownValues) {
 //         const [keySectionId] = key.split("_");
 //         const numericKeySectionId = Number(keySectionId);
@@ -1072,7 +990,6 @@
 //         else continue;
 //       }
 
-//       // Check yes/no values
 //       for (const key in selectedYesNoValues) {
 //         const [keySectionId] = key.split("_");
 //         const numericKeySectionId = Number(keySectionId);
@@ -1103,7 +1020,7 @@
 //     } else {
 //       return matchedConditions === conditions.length;
 //     }
-//   }, [radioValues, checkboxValues, selectedDropdownValues, selectedYesNoValues]);
+//   };
 
 //   const handleNext = () => {
 //     if (activeStep < totalSteps - 1) {
@@ -1122,7 +1039,6 @@
 //     setActiveStep(selectedIndex);
 //   };
 
-//   // Submit function using axios
 //   const handleSubmit = async () => {
 //     const errors = {};
 
@@ -1176,22 +1092,29 @@
 //       return;
 //     }
 
-//     setIsLoading(true);
-    
 //     try {
 //       const data = {
 //         ...prepareSubmitData(true),
 //         status: "Completed",
 //         issealed: true,
-//         completedby: accountName || username,
+//         completedby: accountName ,
 //         completedDate: new Date().toISOString(),
 //       };
 
-//       await organizerAPI.completeAndNotifyOrganizer(organizer._id, data);
+//       console.log("Final submission data:", {
+//         status: data.status,
+//         issealed: data.issealed,
+//         completedby: data.completedby,
+//         totalSections: data.sections.length,
+//         repeatedSections: data.sections.filter(s => s.sectionsettings?.isRepeated).length
+//       });
+
+//       const response = await organizerAPI.completeAndNotifyOrganizer(organizer._id, data);
+//       console.log("Submission response:", response.data);
 
 //       organizer.status = "Completed";
 //       organizer.issealed = true;
-//       organizer.completedby = accountName || username;
+//       organizer.completedby = accountName ;
 
 //       toast.success("Organizer completed and sealed successfully!");
 //       handleClose();
@@ -1199,15 +1122,14 @@
 //     } catch (error) {
 //       console.error("Error submitting organizer:", error);
 //       toast.error(
-//         error.response?.data?.message || error.message || "Something went wrong while updating organizer!"
+//         error.response?.data?.message || "Something went wrong while updating organizer!"
 //       );
-//     } finally {
-//       setIsLoading(false);
 //     }
 //   };
 
 //   const getQuestionTextValue = (question, sectionId) => {
-//     const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+//     const numericSectionId =
+//       typeof sectionId === "string" ? Number(sectionId) : sectionId;
 //     const key = `${numericSectionId}_${question.text}`;
 
 //     switch (question.type) {
@@ -1245,7 +1167,8 @@
 //   };
 
 //   const getOptionSelectedState = (question, option, sectionId) => {
-//     const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+//     const numericSectionId =
+//       typeof sectionId === "string" ? Number(sectionId) : sectionId;
 //     const key = `${numericSectionId}_${question.text}`;
 //     switch (question.type) {
 //       case "Radio Buttons":
@@ -1261,13 +1184,8 @@
 //     }
 //   };
 
-//   // Load organizer data effect with proper dependencies
 //   useEffect(() => {
-//     if (organizer?.sections && open) {
-//       // Disable auto-save while loading
-//       isAutoSaveEnabledRef.current = false;
-//       isInitialLoadRef.current = true;
-      
+//     if (organizer?.sections) {
 //       const newInputValues = {};
 //       const newRadioValues = {};
 //       const newCheckboxValues = {};
@@ -1402,13 +1320,9 @@
 //       setUploadedFiles(newUploadedFiles);
 //       setRepeatedSections(newRepeatedSections);
       
-//       // Enable auto-save after data is loaded
-//       setTimeout(() => {
-//         isInitialLoadRef.current = false;
-//         isAutoSaveEnabledRef.current = true;
-//       }, 500);
+//       console.log("Loaded repeated sections:", newRepeatedSections);
 //     }
-//   }, [organizer, open]);
+//   }, [organizer]);
 
 //   const isElementActive = (element) => {
 //     if (organizer?.issealed) return true;
@@ -1423,75 +1337,7 @@
 //     return validationErrors[sectionId]?.[elementText] || "";
 //   };
 
-//   const handleUploadSuccess = useCallback((uploadedFileDataArray) => {
-//     console.log("Files uploaded successfully:", uploadedFileDataArray);
-
-//     const key = Object.keys(pendingFiles).find(
-//       (k) => pendingFiles[k]?.length > 0
-//     );
-
-//     if (key && uploadedFileDataArray.length > 0) {
-//       setUploadedFiles((prev) => ({
-//         ...prev,
-//         [key]: [
-//           ...(prev[key] || []),
-//           ...uploadedFileDataArray.map((fileData) => ({
-//             fileName: fileData.fileName,
-//             filePath: fileData.filePath,
-//             uploadDate: new Date().toISOString(),
-//             uploadedBy: accountName || username,
-//             status: "completed",
-//           })),
-//         ],
-//       }));
-
-//       setPendingFiles((prev) => {
-//         const newState = { ...prev };
-//         delete newState[key];
-//         return newState;
-//       });
-
-//       setSelectedFiles((prev) => {
-//         const newState = { ...prev };
-//         delete newState[key];
-//         return newState;
-//       });
-
-//       setAnsweredElements((prev) => ({
-//         ...prev,
-//         [key]: true,
-//       }));
-
-//       const [sectionId, elementText] = key.split("_");
-//       const numericSectionId = Number(sectionId);
-//       if (validationErrors[numericSectionId]?.[elementText]) {
-//         setValidationErrors((prev) => {
-//           const newErrors = { ...prev };
-//           if (newErrors[numericSectionId]) {
-//             delete newErrors[numericSectionId][elementText];
-//             if (Object.keys(newErrors[numericSectionId]).length === 0) {
-//               delete newErrors[numericSectionId];
-//             }
-//           }
-//           return newErrors;
-//         });
-//       }
-
-//       // Trigger auto-save after file upload
-//       if (isAutoSaveEnabledRef.current) {
-//         const data = prepareSubmitData(false);
-//         autoSaveOrganizer(data);
-//       }
-
-//       toast.success(
-//         `${uploadedFileDataArray.length} file(s) uploaded successfully!`
-//       );
-//     }
-
-//     setIsDocumentForm(false);
-//   }, [pendingFiles, uploadedFiles, accountName, username, validationErrors, prepareSubmitData, autoSaveOrganizer]);
-
-//   const renderSection = useCallback((
+//   const renderSection = (
 //     section,
 //     isRepeated = false,
 //     originalSectionId = null
@@ -1880,30 +1726,57 @@
 //                       )}
 //                     </Typography>
 
-//                     <DatePicker
-//                       format="MM/DD/YYYY"
-//                       sx={{
-//                         width: "100%",
-//                         backgroundColor: "#fff",
-//                       }}
-//                       value={
-//                         dateValues[`${sectionId}_${element.text}`] ||
-//                         dayjs()
-//                       }
-//                       disabled={isElementActive(element)}
-//                       onChange={(newValue) => {
-//                         if (!isElementActive(element)) {
-//                           handleDateChange(
-//                             newValue,
-//                             element.text,
-//                             sectionId
-//                           );
-//                         }
-//                       }}
-//                       renderInput={(params) => (
-//                         <TextField {...params} size="small" />
-//                       )}
-//                     />
+//                     {element.type === "Date" && (
+//                       <Box mt={2}>
+//                         <Typography
+//                           variant="subtitle2"
+//                           component="p"
+//                           gutterBottom
+//                           sx={{ fontWeight: "550" }}
+//                         >
+//                           {element.text}
+//                           {element.questionsectionsettings?.required && (
+//                             <span style={{ color: "red", marginLeft: "4px" }}>
+//                               *
+//                             </span>
+//                           )}
+//                         </Typography>
+
+//                         <DatePicker
+//                           format="MM/DD/YYYY"
+//                           sx={{
+//                             width: "100%",
+//                             backgroundColor: "#fff",
+//                           }}
+//                           value={
+//                             dateValues[`${sectionId}_${element.text}`] ||
+//                             dayjs()
+//                           }
+//                           disabled={isElementActive(element)}
+//                           onChange={(newValue) => {
+//                             if (!isElementActive(element)) {
+//                               handleDateChange(
+//                                 newValue,
+//                                 element.text,
+//                                 sectionId
+//                               );
+//                             }
+//                           }}
+//                           slotProps={{
+//                             textField: { size: "small" }
+//                           }}
+//                         />
+//                         {hasError(sectionId, element.text) && (
+//                           <Typography
+//                             variant="caption"
+//                             color="error"
+//                             sx={{ display: "block", mt: 0.5, ml: 1 }}
+//                           >
+//                             {getErrorMessage(sectionId, element.text)}
+//                           </Typography>
+//                         )}
+//                       </Box>
+//                     )}
 //                     {hasError(sectionId, element.text) && (
 //                       <Typography
 //                         variant="caption"
@@ -1936,18 +1809,18 @@
 //                       <Button
 //                         variant="outlined"
 //                         component="label"
-//                         disabled={isElementActive(element)}
+//                         disabled={
+//                           isElementActive(element)
+//                         }
 //                       >
 //                         Choose Files
-//                         <input 
-//                           type="file" 
-//                           hidden 
-//                           multiple   
-//                           onChange={(e) =>
+//                           <input type="file" hidden multiple   onChange={(e) =>
 //                             handleFileSelect(e, element.text, sectionId)
 //                           }
-//                           disabled={isElementActive(element)} 
-//                         />
+//                           sx={{ display: "none" }}
+//                           disabled={
+//                             isElementActive(element)
+//                           } />
 //                       </Button>
 //                       <Typography
 //                         variant="caption"
@@ -2097,7 +1970,7 @@
 //         )}
 //       </Box>
 //     );
-//   }, [organizer?.issealed, inputValues, radioValues, checkboxValues, selectedYesNoValues, selectedDropdownValues, dateValues, uploadedFiles, pendingFiles, validationErrors, shouldShowElement]);
+//   };
 
 //   return (
 //     <>
@@ -2207,20 +2080,9 @@
 //                   )}
 
 //                   <Button
-//                     onClick={manualSave}
-//                     variant="outlined"
-//                     size="small"
-//                     disabled={isSaving || organizer?.status === "Completed"}
-//                     startIcon={<SaveIcon />}
-//                     sx={{ mr: 1 }}
-//                   >
-//                     {isSaving ? "Saving..." : "Save Progress"}
-//                   </Button>
-
-//                   <Button
 //                     onClick={handleSubmit}
 //                     color="primary"
-//                     disabled={organizer?.issealed || organizer?.status === "Completed" || isLoading}
+//                     disabled={organizer?.issealed || organizer?.status === "Completed"}
 //                     sx={{
 //                       backgroundColor: organizer?.issealed || organizer?.status === "Completed" 
 //                         ? "grey.400" 
@@ -2239,7 +2101,7 @@
 //                       }
 //                     }}
 //                   >
-//                     {isLoading ? "Submitting..." : (organizer?.issealed || organizer?.status === "Completed" ? "Completed" : "Submit")}
+//                     {organizer?.issealed || organizer?.status === "Completed" ? "Completed" : "Submit"}
 //                   </Button>
 //                 </Box>
 
@@ -2282,7 +2144,70 @@
 //         }
 //         accountId={accountId}
 //         folderTree={folderTree}
-//         onUploadSuccess={handleUploadSuccess}
+//         onUploadSuccess={(uploadedFileDataArray) => {
+//           console.log("Files uploaded successfully:", uploadedFileDataArray);
+
+//           const key = Object.keys(pendingFiles).find(
+//             (k) => pendingFiles[k]?.length > 0
+//           );
+
+//           if (key && uploadedFileDataArray.length > 0) {
+//             setUploadedFiles((prev) => ({
+//               ...prev,
+//               [key]: [
+//                 ...(prev[key] || []),
+//                 ...uploadedFileDataArray.map((fileData) => ({
+//                   fileName: fileData.fileName,
+//                   filePath: fileData.filePath,
+//                   uploadDate: new Date().toISOString(),
+//                   uploadedBy: accountName ,
+//                   status: "completed",
+//                 })),
+//               ],
+//             }));
+
+//             setPendingFiles((prev) => {
+//               const newState = { ...prev };
+//               delete newState[key];
+//               return newState;
+//             });
+
+//             setSelectedFiles((prev) => {
+//               const newState = { ...prev };
+//               delete newState[key];
+//               return newState;
+//             });
+
+//             setAnsweredElements((prev) => ({
+//               ...prev,
+//               [key]: true,
+//             }));
+
+//             const [sectionId, elementText] = key.split("_");
+//             const numericSectionId = Number(sectionId);
+//             if (validationErrors[numericSectionId]?.[elementText]) {
+//               setValidationErrors((prev) => {
+//                 const newErrors = { ...prev };
+//                 if (newErrors[numericSectionId]) {
+//                   delete newErrors[numericSectionId][elementText];
+//                   if (Object.keys(newErrors[numericSectionId]).length === 0) {
+//                     delete newErrors[numericSectionId];
+//                   }
+//                 }
+//                 return newErrors;
+//               });
+//             }
+
+//             const data = prepareSubmitData(false);
+//             debouncedAutoSave(data);
+
+//             toast.success(
+//               `${uploadedFileDataArray.length} file(s) uploaded successfully!`
+//             );
+//           }
+
+//           setIsDocumentForm(false);
+//         }}
 //         onUploadError={(errorFiles) => {
 //           console.error("File uploads failed:", errorFiles);
 //           const key = Object.keys(pendingFiles).find(
@@ -2308,39 +2233,21 @@
 // };
 
 // export default OrganizerDialog;
+
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Box,
-  Typography,
-  Button,
-  TextField,
-  FormControl,
-  Select,
-  MenuItem,
-  LinearProgress,
-  IconButton,
-  Chip,
-} from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { debounce } from "lodash";
-import { toast } from "material-react-toastify";
-import { organizerAPI, accountsAPI, docAPI, authAPI, accountDocsAPI } from "../../services/api"; // Adjust import path as needed
-import FileUploadDrawer from "./FileUploadDrawer"; // Adjust import path as needed
-import SelectableButton from "./SelectableButton"; // Adjust import path as needed
+import { organizerAPI, accountsAPI, docAPI, authAPI, accountDocsAPI } from "../../services/api";
+import FileUploadDrawer from "./FileUploadDrawer";
+import SelectableButton from "./SelectableButton";
+import { useToast } from "../../hooks/useToast";
 
 const OrganizerDialog = ({ open, handleClose, organizer }) => {
   const [accountName, setAccountName] = useState("");
   const [accId] = useState(sessionStorage.getItem("accountId"));
+  const toast = useToast();
 
   const fetchAccountDetails = async () => {
     try {
@@ -2355,16 +2262,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
     fetchAccountDetails();
   }, [accId]);
 
-  
-
-  
-
-  const [accountId, setAccountId] = useState(
-    sessionStorage.getItem("accountId")
-  );
-
-
-
+  const [accountId, setAccountId] = useState(sessionStorage.getItem("accountId"));
   const [folderTree, setFolderTree] = useState([]);
   const [error, setError] = useState("");
 
@@ -2391,7 +2289,6 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   const [checkboxValues, setCheckboxValues] = useState({});
   const [answeredElements, setAnsweredElements] = useState({});
   const [activeStep, setActiveStep] = useState(0);
-
   const [dateValues, setDateValues] = useState({});
   const [uploadedFiles, setUploadedFiles] = useState({});
   const [selectedFiles, setSelectedFiles] = useState({});
@@ -2556,8 +2453,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   };
 
   const cleanUpSectionData = (sectionId) => {
-    const numericSectionId =
-      typeof sectionId === "string" ? Number(sectionId) : sectionId;
+    const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
 
     setInputValues((prev) => {
       const newValues = { ...prev };
@@ -2651,8 +2547,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   };
 
   const handleDateChange = (newValue, elementText, sectionId) => {
-    const numericSectionId =
-      typeof sectionId === "string" ? Number(sectionId) : sectionId;
+    const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
     const key = `${numericSectionId}_${elementText}`;
 
     setDateValues((prev) => ({
@@ -2680,8 +2575,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   };
 
   const handleFileSelect = (event, elementText, sectionId) => {
-    const numericSectionId =
-      typeof sectionId === "string" ? Number(sectionId) : sectionId;
+    const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
     const key = `${numericSectionId}_${elementText}`;
     const files = event.target.files;
 
@@ -2916,7 +2810,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
                     fileName: fileInfo.fileName,
                     filePath: fileInfo.filePath || "",
                     uploadDate: fileInfo.uploadDate || new Date().toISOString(),
-                    uploadedBy: accountName ,
+                    uploadedBy: accountName,
                   }));
                   questionData.textvalue = completedFiles
                     .map((f) => f.fileName)
@@ -2977,8 +2871,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   }, [debouncedAutoSave]);
 
   const handleRadioChange = (value, elementText, sectionId) => {
-    const numericSectionId =
-      typeof sectionId === "string" ? Number(sectionId) : sectionId;
+    const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
     const key = `${numericSectionId}_${elementText}`;
     setRadioValues((prevValues) => ({
       ...prevValues,
@@ -3004,8 +2897,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   };
 
   const handleCheckboxChange = (value, elementText, sectionId) => {
-    const numericSectionId =
-      typeof sectionId === "string" ? Number(sectionId) : sectionId;
+    const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
     const key = `${numericSectionId}_${elementText}`;
     setCheckboxValues((prevValues) => ({
       ...prevValues,
@@ -3034,8 +2926,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   };
 
   const handleYesNoChange = (value, elementText, sectionId) => {
-    const numericSectionId =
-      typeof sectionId === "string" ? Number(sectionId) : sectionId;
+    const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
     const key = `${numericSectionId}_${elementText}`;
     setSelectedYesNoValues((prevValues) => ({
       ...prevValues,
@@ -3061,8 +2952,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   };
 
   const handleInputChange = (event, elementText, sectionId) => {
-    const numericSectionId =
-      typeof sectionId === "string" ? Number(sectionId) : sectionId;
+    const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
     const key = `${numericSectionId}_${elementText}`;
     const { value } = event.target;
     setInputValues((prevValues) => ({
@@ -3089,8 +2979,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   };
 
   const handleDropdownValueChange = (event, elementText, sectionId) => {
-    const numericSectionId =
-      typeof sectionId === "string" ? Number(sectionId) : sectionId;
+    const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
     const key = `${numericSectionId}_${elementText}`;
     setSelectedDropdownValues((prevValues) => ({
       ...prevValues,
@@ -3406,7 +3295,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
         ...prepareSubmitData(true),
         status: "Completed",
         issealed: true,
-        completedby: accountName ,
+        completedby: accountName,
         completedDate: new Date().toISOString(),
       };
 
@@ -3423,7 +3312,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
 
       organizer.status = "Completed";
       organizer.issealed = true;
-      organizer.completedby = accountName ;
+      organizer.completedby = accountName;
 
       toast.success("Organizer completed and sealed successfully!");
       handleClose();
@@ -3437,8 +3326,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   };
 
   const getQuestionTextValue = (question, sectionId) => {
-    const numericSectionId =
-      typeof sectionId === "string" ? Number(sectionId) : sectionId;
+    const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
     const key = `${numericSectionId}_${question.text}`;
 
     switch (question.type) {
@@ -3476,8 +3364,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   };
 
   const getOptionSelectedState = (question, option, sectionId) => {
-    const numericSectionId =
-      typeof sectionId === "string" ? Number(sectionId) : sectionId;
+    const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
     const key = `${numericSectionId}_${question.text}`;
     switch (question.type) {
       case "Radio Buttons":
@@ -3656,137 +3543,83 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
       section.sectionsettings?.sectionRepeatingMode && !isRepeated && !organizer?.issealed;
 
     return (
-      <Box key={sectionId}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
-          <Typography variant="h6" component="h2">
+      <div key={sectionId} className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">
             {section.text}
             {isRepeated && (
-              <Chip 
-                label="Repeated" 
-                size="small" 
-                color="secondary" 
-                sx={{ ml: 1, fontSize: '0.7rem' }}
-              />
+              <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                Repeated
+              </span>
             )}
-          </Typography>
+          </h2>
           {isRepeated && (
-            <Button
-              variant="outlined"
-              color="error"
-              size="small"
+            <button
               onClick={() =>
                 removeRepeatedSection(originalSectionId, Number(sectionId))
               }
               disabled={organizer?.issealed}
+              className="px-3 py-1 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Remove Section
-            </Button>
+            </button>
           )}
-        </Box>
+        </div>
 
         {section.formElements.map(
           (element) =>
             shouldShowElement(element, sectionId) && (
-              <Box key={`${sectionId}_${element.id}`}>
+              <div key={`${sectionId}_${element.id}`}>
                 {element.type === "Text Editor" && (
-                  <Box mt={2} mb={2}>
-                    <Typography>
-                      <span
-                        dangerouslySetInnerHTML={{
-                          __html: element.text,
-                        }}
-                      />
-                    </Typography>
-                  </Box>
+                  <div className="mt-2 mb-2">
+                    <div className="prose" dangerouslySetInnerHTML={{ __html: element.text }} />
+                  </div>
                 )}
 
                 {(element.type === "Free Entry" ||
                   element.type === "Email") && (
-                  <Box mt={2}>
-                    <Typography
-                      variant="subtitle2"
-                      component="p"
-                      gutterBottom
-                      sx={{ fontWeight: "550" }}
-                    >
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-1">
                       {element.text}
                       {element.questionsectionsettings?.required && (
-                        <span style={{ color: "red", marginLeft: "4px" }}>
-                          *
-                        </span>
+                        <span className="text-red-500 ml-1">*</span>
                       )}
-                    </Typography>
-                    <TextField
+                    </p>
+                    <input
                       disabled={isElementActive(element)}
-                      variant="filled"
-                      size="small"
-                      multiline
-                      fullWidth
+                      type={element.type === "Free Entry" ? "text" : "email"}
                       placeholder={`${element.type} Answer`}
-                      inputProps={{
-                        type:
-                          element.type === "Free Entry"
-                            ? "text"
-                            : element.type.toLowerCase(),
-                      }}
-                      style={{ display: "block" }}
                       value={inputValues[`${sectionId}_${element.text}`] || ""}
                       onChange={(e) =>
                         handleInputChange(e, element.text, sectionId)
                       }
-                      error={hasError(sectionId, element.text)}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        hasError(sectionId, element.text)
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } ${isElementActive(element) ? "bg-gray-100" : "bg-white"}`}
                     />
                     {hasError(sectionId, element.text) && (
-                      <Typography
-                        variant="caption"
-                        color="error"
-                        sx={{ display: "block", mt: 0.5, ml: 1 }}
-                      >
+                      <p className="text-red-500 text-xs mt-1 ml-1">
                         {getErrorMessage(sectionId, element.text)}
-                      </Typography>
+                      </p>
                     )}
-                  </Box>
+                  </div>
                 )}
 
                 {element.type === "Number" && (
-                  <Box mt={2}>
-                    <Typography
-                      variant="subtitle2"
-                      component="p"
-                      gutterBottom
-                      sx={{ fontWeight: "550" }}
-                    >
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-1">
                       {element.text}
                       {element.questionsectionsettings?.required && (
-                        <span style={{ color: "red", marginLeft: "4px" }}>
-                          *
-                        </span>
+                        <span className="text-red-500 ml-1">*</span>
                       )}
-                    </Typography>
-                    <TextField
+                    </p>
+                    <input
                       disabled={isElementActive(element)}
-                      variant="outlined"
-                      size="small"
-                      multiline
-                      fullWidth
+                      type="text"
+                      inputMode="numeric"
                       placeholder={`${element.type} Answer`}
-                      inputProps={{
-                        type: "text",
-                        inputMode: "numeric",
-                        pattern: "[0-9]*",
-                      }}
-                      maxRows={8}
-                      style={{
-                        display: "block",
-                        marginTop: "15px",
-                      }}
                       value={inputValues[`${sectionId}_${element.text}`] || ""}
                       onChange={(e) => {
                         const numericValue = e.target.value.replace(/\D/g, "");
@@ -3796,42 +3629,29 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
                           sectionId
                         );
                       }}
-                      error={hasError(sectionId, element.text)}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        hasError(sectionId, element.text)
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } ${isElementActive(element) ? "bg-gray-100" : "bg-white"}`}
                     />
                     {hasError(sectionId, element.text) && (
-                      <Typography
-                        variant="caption"
-                        color="error"
-                        sx={{ display: "block", mt: 0.5, ml: 1 }}
-                      >
+                      <p className="text-red-500 text-xs mt-1 ml-1">
                         {getErrorMessage(sectionId, element.text)}
-                      </Typography>
+                      </p>
                     )}
-                  </Box>
+                  </div>
                 )}
 
                 {element.type === "Radio Buttons" && (
-                  <Box mt={2}>
-                    <Typography
-                      variant="subtitle2"
-                      component="p"
-                      gutterBottom
-                      sx={{ fontWeight: "550" }}
-                    >
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-1">
                       {element.text}
                       {element.questionsectionsettings?.required && (
-                        <span style={{ color: "red", marginLeft: "4px" }}>
-                          *
-                        </span>
+                        <span className="text-red-500 ml-1">*</span>
                       )}
-                    </Typography>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        gap: 1,
-                        flexWrap: "wrap",
-                      }}
-                    >
+                    </p>
+                    <div className="flex gap-2 flex-wrap">
                       {element.options.map((option) => (
                         <SelectableButton
                           key={option.text}
@@ -3851,41 +3671,24 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
                           {option.text}
                         </SelectableButton>
                       ))}
-                    </Box>
+                    </div>
                     {hasError(sectionId, element.text) && (
-                      <Typography
-                        variant="caption"
-                        color="error"
-                        sx={{ display: "block", mt: 0.5, ml: 1 }}
-                      >
+                      <p className="text-red-500 text-xs mt-1 ml-1">
                         {getErrorMessage(sectionId, element.text)}
-                      </Typography>
+                      </p>
                     )}
-                  </Box>
+                  </div>
                 )}
 
                 {element.type === "Checkboxes" && (
-                  <Box mt={2}>
-                    <Typography
-                      variant="subtitle2"
-                      component="p"
-                      gutterBottom
-                      sx={{ fontWeight: "550" }}
-                    >
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-1">
                       {element.text}
                       {element.questionsectionsettings?.required && (
-                        <span style={{ color: "red", marginLeft: "4px" }}>
-                          *
-                        </span>
+                        <span className="text-red-500 ml-1">*</span>
                       )}
-                    </Typography>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        gap: 1,
-                        flexWrap: "wrap",
-                      }}
-                    >
+                    </p>
+                    <div className="flex gap-2 flex-wrap">
                       {element.options.map((option) => (
                         <SelectableButton
                           key={option.text}
@@ -3906,35 +3709,24 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
                           {option.text}
                         </SelectableButton>
                       ))}
-                    </Box>
+                    </div>
                     {hasError(sectionId, element.text) && (
-                      <Typography
-                        variant="caption"
-                        color="error"
-                        sx={{ display: "block", mt: 0.5, ml: 1 }}
-                      >
+                      <p className="text-red-500 text-xs mt-1 ml-1">
                         {getErrorMessage(sectionId, element.text)}
-                      </Typography>
+                      </p>
                     )}
-                  </Box>
+                  </div>
                 )}
 
                 {element.type === "Yes/No" && (
-                  <Box mt={2}>
-                    <Typography
-                      variant="subtitle2"
-                      component="p"
-                      gutterBottom
-                      sx={{ fontWeight: "550" }}
-                    >
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-1">
                       {element.text}
                       {element.questionsectionsettings?.required && (
-                        <span style={{ color: "red", marginLeft: "4px" }}>
-                          *
-                        </span>
+                        <span className="text-red-500 ml-1">*</span>
                       )}
-                    </Typography>
-                    <Box sx={{ display: "flex", gap: 1 }}>
+                    </p>
+                    <div className="flex gap-2">
                       {element.options.map((option) => (
                         <SelectableButton
                           key={option.text}
@@ -3955,260 +3747,216 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
                           {option.text}
                         </SelectableButton>
                       ))}
-                    </Box>
+                    </div>
                     {hasError(sectionId, element.text) && (
-                      <Typography
-                        variant="caption"
-                        color="error"
-                        sx={{ display: "block", mt: 0.5, ml: 1 }}
-                      >
+                      <p className="text-red-500 text-xs mt-1 ml-1">
                         {getErrorMessage(sectionId, element.text)}
-                      </Typography>
+                      </p>
                     )}
-                  </Box>
+                  </div>
                 )}
 
                 {element.type === "Dropdown" && (
-                  <Box mt={2}>
-                    <Typography
-                      variant="subtitle2"
-                      component="p"
-                      gutterBottom
-                      sx={{ fontWeight: "550" }}
-                    >
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-1">
                       {element.text}
                       {element.questionsectionsettings?.required && (
-                        <span style={{ color: "red", marginLeft: "4px" }}>
-                          *
-                        </span>
+                        <span className="text-red-500 ml-1">*</span>
                       )}
-                    </Typography>
-                    <FormControl fullWidth>
-                      <Select
-                        value={
-                          selectedDropdownValues[
-                            `${sectionId}_${element.text}`
-                          ] || ""
-                        }
-                        disabled={isElementActive(element)}
-                        onChange={(event) =>
-                          handleDropdownValueChange(
-                            event,
+                    </p>
+                    <select
+                      value={
+                        selectedDropdownValues[
+                          `${sectionId}_${element.text}`
+                        ] || ""
+                      }
+                      disabled={isElementActive(element)}
+                      onChange={(event) =>
+                        handleDropdownValueChange(
+                          event,
+                          element.text,
+                          sectionId
+                        )
+                      }
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        hasError(sectionId, element.text)
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } ${isElementActive(element) ? "bg-gray-100" : "bg-white"}`}
+                    >
+                      <option value="">Select an option</option>
+                      {element.options.map((option) => (
+                        <option key={option.text} value={option.text}>
+                          {option.text}
+                        </option>
+                      ))}
+                    </select>
+                    {hasError(sectionId, element.text) && (
+                      <p className="text-red-500 text-xs mt-1 ml-1">
+                        {getErrorMessage(sectionId, element.text)}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* {element.type === "Date" && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-1">
+                      {element.text}
+                      {element.questionsectionsettings?.required && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
+                    </p>
+                    <DatePicker
+                      format="MM/DD/YYYY"
+                      className="w-full"
+                      value={
+                        dateValues[`${sectionId}_${element.text}`] ||
+                        dayjs()
+                      }
+                      disabled={isElementActive(element)}
+                      onChange={(newValue) => {
+                        if (!isElementActive(element)) {
+                          handleDateChange(
+                            newValue,
                             element.text,
                             sectionId
-                          )
+                          );
                         }
-                        size="small"
-                      >
-                        {element.options.map((option) => (
-                          <MenuItem key={option.text} value={option.text}>
-                            {option.text}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                      }}
+                      slotProps={{
+                        textField: { 
+                          size: "small",
+                          className: `w-full ${hasError(sectionId, element.text) ? "border-red-500" : "border-gray-300"}`
+                        }
+                      }}
+                    />
                     {hasError(sectionId, element.text) && (
-                      <Typography
-                        variant="caption"
-                        color="error"
-                        sx={{ display: "block", mt: 0.5, ml: 1 }}
-                      >
+                      <p className="text-red-500 text-xs mt-1 ml-1">
                         {getErrorMessage(sectionId, element.text)}
-                      </Typography>
+                      </p>
                     )}
-                  </Box>
-                )}
-
-                {element.type === "Date" && (
-                  <Box mt={2}>
-                    <Typography
-                      variant="subtitle2"
-                      component="p"
-                      gutterBottom
-                      sx={{ fontWeight: "550" }}
-                    >
-                      {element.text}
-                      {element.questionsectionsettings?.required && (
-                        <span style={{ color: "red", marginLeft: "4px" }}>
-                          *
-                        </span>
-                      )}
-                    </Typography>
-
-                    {element.type === "Date" && (
-                      <Box mt={2}>
-                        <Typography
-                          variant="subtitle2"
-                          component="p"
-                          gutterBottom
-                          sx={{ fontWeight: "550" }}
-                        >
-                          {element.text}
-                          {element.questionsectionsettings?.required && (
-                            <span style={{ color: "red", marginLeft: "4px" }}>
-                              *
-                            </span>
-                          )}
-                        </Typography>
-
-                        <DatePicker
-                          format="MM/DD/YYYY"
-                          sx={{
-                            width: "100%",
-                            backgroundColor: "#fff",
-                          }}
-                          value={
-                            dateValues[`${sectionId}_${element.text}`] ||
-                            dayjs()
-                          }
-                          disabled={isElementActive(element)}
-                          onChange={(newValue) => {
-                            if (!isElementActive(element)) {
-                              handleDateChange(
-                                newValue,
-                                element.text,
-                                sectionId
-                              );
-                            }
-                          }}
-                          slotProps={{
-                            textField: { size: "small" }
-                          }}
-                        />
-                        {hasError(sectionId, element.text) && (
-                          <Typography
-                            variant="caption"
-                            color="error"
-                            sx={{ display: "block", mt: 0.5, ml: 1 }}
-                          >
-                            {getErrorMessage(sectionId, element.text)}
-                          </Typography>
-                        )}
-                      </Box>
-                    )}
-                    {hasError(sectionId, element.text) && (
-                      <Typography
-                        variant="caption"
-                        color="error"
-                        sx={{ display: "block", mt: 0.5, ml: 1 }}
-                      >
-                        {getErrorMessage(sectionId, element.text)}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-
+                  </div>
+                )} */}
+{element.type === "Date" && (
+  <div className="mt-4">
+    <p className="text-sm font-medium text-gray-700 mb-1">
+      {element.text}
+      {element.questionsectionsettings?.required && (
+        <span className="text-red-500 ml-1">*</span>
+      )}
+    </p>
+    <input
+      type="date"
+      value={
+        dateValues[`${sectionId}_${element.text}`]
+          ? dayjs(dateValues[`${sectionId}_${element.text}`]).format("YYYY-MM-DD")
+          : ""
+      }
+      disabled={isElementActive(element)}
+      onChange={(e) => {
+        if (!isElementActive(element) && e.target.value) {
+          handleDateChange(
+            dayjs(e.target.value),
+            element.text,
+            sectionId
+          );
+        }
+      }}
+      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+        hasError(sectionId, element.text)
+          ? "border-red-500"
+          : "border-gray-300"
+      } ${isElementActive(element) ? "bg-gray-100" : "bg-white"}`}
+    />
+    {hasError(sectionId, element.text) && (
+      <p className="text-red-500 text-xs mt-1 ml-1">
+        {getErrorMessage(sectionId, element.text)}
+      </p>
+    )}
+  </div>
+)}
                 {element.type === "File Upload" && (
-                  <Box mt={2}>
-                    <Typography
-                      variant="subtitle2"
-                      component="p"
-                      gutterBottom
-                      sx={{ fontWeight: "550" }}
-                    >
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-1">
                       {element.text}
                       {element.questionsectionsettings?.required && (
-                        <span style={{ color: "red", marginLeft: "4px" }}>
-                          *
-                        </span>
+                        <span className="text-red-500 ml-1">*</span>
                       )}
-                    </Typography>
+                    </p>
 
-                    <Box sx={{ mb: 2 }}>
-                      <Button
-                        variant="outlined"
-                        component="label"
-                        disabled={
-                          isElementActive(element)
-                        }
-                      >
-                        Choose Files
-                          <input type="file" hidden multiple   onChange={(e) =>
+                    <div className="mb-3">
+                      <label className="inline-block">
+                        <input
+                          type="file"
+                          hidden
+                          multiple
+                          onChange={(e) =>
                             handleFileSelect(e, element.text, sectionId)
                           }
-                          sx={{ display: "none" }}
-                          disabled={
-                            isElementActive(element)
-                          } />
-                      </Button>
-                      <Typography
-                        variant="caption"
-                        sx={{ display: "block", mt: 0.5, ml: 1 }}
-                      >
+                          disabled={isElementActive(element)}
+                          className="hidden"
+                        />
+                        <span className={`px-4 py-2 border rounded cursor-pointer inline-block ${
+                          isElementActive(element)
+                            ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                            : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+                        }`}>
+                          Choose Files
+                        </span>
+                      </label>
+                      <p className="text-xs text-gray-500 mt-1 ml-1">
                         You can select multiple files
-                      </Typography>
-                    </Box>
+                      </p>
+                    </div>
 
                     {pendingFiles[`${sectionId}_${element.text}`]?.length >
                       0 && (
-                      <Box sx={{ mb: 2 }}>
-                        <Typography
-                          variant="body2"
-                          fontWeight="bold"
-                          gutterBottom
-                        >
+                      <div className="mb-3">
+                        <p className="text-sm font-bold mb-1">
                           Files ready to upload (
                           {pendingFiles[`${sectionId}_${element.text}`].length}
                           ):
-                        </Typography>
+                        </p>
                         {pendingFiles[`${sectionId}_${element.text}`].map(
                           (fileInfo, index) => (
-                            <Box
+                            <div
                               key={index}
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                                mb: 0.5,
-                              }}
+                              className="flex items-center gap-2 mb-1"
                             >
-                              <Typography variant="body2">
+                              <p className="text-sm">
                                 {fileInfo.fileName} (Ready to upload)
-                              </Typography>
-                            </Box>
+                              </p>
+                            </div>
                           )
                         )}
-                      </Box>
+                      </div>
                     )}
 
                     {uploadedFiles[`${sectionId}_${element.text}`]?.length >
                       0 && (
-                      <Box sx={{ mb: 2 }}>
-                        <Typography
-                          variant="body2"
-                          fontWeight="bold"
-                          gutterBottom
-                        >
+                      <div className="mb-3">
+                        <p className="text-sm font-bold mb-1">
                           Uploaded Files (
                           {uploadedFiles[`${sectionId}_${element.text}`].length}
                           ):
-                        </Typography>
+                        </p>
                         {uploadedFiles[`${sectionId}_${element.text}`].map(
                           (fileInfo, index) => (
-                            <Box
+                            <div
                               key={index}
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                                mb: 0.5,
-                                p: 1,
-                                bgcolor: "grey.50",
-                                borderRadius: 1,
-                              }}
+                              className="flex items-center gap-2 mb-1 p-2 bg-gray-50 rounded"
                             >
-                              <Typography variant="body2" sx={{ flex: 1 }}>
+                              <p className="text-sm flex-1">
                                 {fileInfo.fileName}
                                 {fileInfo.status === "uploading" &&
                                   " (Uploading...)"}
                                 {fileInfo.status === "completed" && " ✓"}
-                              </Typography>
+                              </p>
 
                               {!isElementActive(element) &&
                                 fileInfo.status === "completed" && (
-                                  <IconButton
-                                    size="small"
-                                    color="error"
+                                  <button
                                     onClick={() =>
                                       handleDeleteFile(
                                         sectionId,
@@ -4216,101 +3964,100 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
                                         fileInfo.fileName
                                       )
                                     }
+                                    className="text-red-600 hover:text-red-800"
                                     title="Delete this file"
                                   >
-                                    <DeleteIcon fontSize="small" />
-                                  </IconButton>
+                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                  </button>
                                 )}
-                            </Box>
+                            </div>
                           )
                         )}
 
                         {!isElementActive(element) &&
                           uploadedFiles[`${sectionId}_${element.text}`].length >
                             1 && (
-                            <Button
-                              variant="outlined"
-                              color="error"
-                              size="small"
+                            <button
                               onClick={() =>
                                 handleDeleteFile(sectionId, element.text)
                               }
-                              sx={{ mt: 1 }}
+                              className="mt-2 px-3 py-1 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50"
                             >
                               Delete All Files
-                            </Button>
+                            </button>
                           )}
-                      </Box>
+                      </div>
                     )}
 
                     {hasError(sectionId, element.text) && (
-                      <Typography
-                        variant="caption"
-                        color="error"
-                        sx={{ display: "block", mt: 0.5, ml: 1 }}
-                      >
+                      <p className="text-red-500 text-xs mt-1 ml-1">
                         {getErrorMessage(sectionId, element.text)}
-                      </Typography>
+                      </p>
                     )}
                     {pendingFiles[`${sectionId}_${element.text}`]?.length >
                       0 && (
-                      <Typography variant="caption" color="warning.main">
+                      <p className="text-yellow-600 text-xs mt-1">
                         ⚠ {pendingFiles[`${sectionId}_${element.text}`].length}{" "}
                         file(s) selected but not uploaded yet
-                      </Typography>
+                      </p>
                     )}
-                  </Box>
+                  </div>
                 )}
-              </Box>
+              </div>
             )
         )}
 
         {canRepeat && (
-          <Box mt={3} mb={2}>
-            <Button
-              variant="outlined"
+          <div className="mt-6 mb-4">
+            <button
               onClick={() => addRepeatedSection(sectionId)}
               disabled={organizer?.issealed}
-              startIcon={<AddIcon />}
+              className="px-4 py-2 text-sm text-blue-600 border border-blue-600 rounded hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1"
             >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+              </svg>
               Add Another {section.text}
-            </Button>
-          </Box>
+            </button>
+          </div>
         )}
-      </Box>
+      </div>
     );
   };
 
+  if (!open) return null;
+
   return (
     <>
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Dialog fullScreen open={open} onClose={handleClose}>
-          <DialogTitle
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              px: 3,
-              py: 2,
-              borderBottom: "1px solid #ddd",
-            }}
-          >
-            <Typography variant="h6" component="p">
-              {organizer?.organizerName || "Organizer"}
-            </Typography>
-            <IconButton edge="end" onClick={handleClose}>
-              <CloseIcon />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent>
-            <FormControl
-              fullWidth
-              sx={{ marginBottom: "10px", marginTop: "10px" }}
-            >
-              <Select
+      {/* <LocalizationProvider dateAdapter={AdapterDayjs}> */}
+        {/* Backdrop with blur */}
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          {/* Dialog Container */}
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800">
+                {organizer?.organizerName || "Organizer"}
+              </h2>
+              <button
+                onClick={handleClose}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* Section Selector */}
+              <select
                 value={activeStep}
                 onChange={handleDropdownChange}
-                size="small"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
               >
                 {visibleSections.map((section, index) => {
                   const visibleElements = section.formElements.filter((el) =>
@@ -4328,102 +4075,84 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
                   const totalVisibleElements = visibleElements.length;
 
                   return (
-                    <MenuItem key={section.id} value={index}>
+                    <option key={section.id} value={index}>
                       {section.text} ({answeredCount}/{totalVisibleElements})
-                    </MenuItem>
+                    </option>
                   );
                 })}
-              </Select>
-            </FormControl>
-            <Box mt={2} mb={2}>
-              <LinearProgress
-                variant="determinate"
-                value={((activeStep + 1) / totalSteps) * 100}
-              />
-            </Box>
+              </select>
 
-            <Box sx={{ pl: 20, pr: 20 }}>
-              {visibleSections.map(
-                (section, sectionIndex) =>
-                  sectionIndex === activeStep &&
-                  renderSection(
-                    section,
-                    section.isRepeated,
-                    section.originalSectionId
-                  )
-              )}
+              {/* Progress Bar */}
+              <div className="mb-6">
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${((activeStep + 1) / totalSteps) * 100}%` }}
+                  />
+                </div>
+              </div>
 
-              <Box
-                mt={3}
-                display="flex"
-                alignItems="center"
-                justifyContent={"space-between"}
-              >
-                <Box display="flex" gap={3} alignItems="center">
-                  {activeStep > 0 && (
-                    <Button onClick={handleBack} variant="outlined">
-                      <ArrowBackIcon fontSize="small" />
-                    </Button>
-                  )}
+              {/* Section Content */}
+              <div className="px-4 md:px-20">
+                {visibleSections.map(
+                  (section, sectionIndex) =>
+                    sectionIndex === activeStep &&
+                    renderSection(
+                      section,
+                      section.isRepeated,
+                      section.originalSectionId
+                    )
+                )}
 
-                  {activeStep < totalSteps - 1 && (
-                    <Button
-                      onClick={handleNext}
-                      color="primary"
-                      sx={{
-                        backgroundColor: "text.menu",
-                        color: "primary.contrastText",
-                        "&:hover": {
-                          backgroundColor: "menu.dark",
-                          boxShadow: 1,
-                        },
-                        transition: "background-color 0.2s ease",
-                      }}
+                {/* Navigation Buttons */}
+                <div className="mt-8 flex items-center justify-between">
+                  <div className="flex gap-3 items-center">
+                    {activeStep > 0 && (
+                      <button
+                        onClick={handleBack}
+                        className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Back
+                      </button>
+                    )}
+
+                    {activeStep < totalSteps - 1 && (
+                      <button
+                        onClick={handleNext}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1"
+                      >
+                        Next
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={handleSubmit}
+                      disabled={organizer?.issealed || organizer?.status === "Completed"}
+                      className={`px-4 py-2 rounded-md transition-colors flex items-center gap-1 ${
+                        organizer?.issealed || organizer?.status === "Completed"
+                          ? "bg-gray-400 text-white cursor-not-allowed"
+                          : "bg-green-600 text-white hover:bg-green-700"
+                      }`}
                     >
-                      Next{" "}
-                      <ArrowForwardIcon
-                        fontSize="small"
-                        sx={{ marginLeft: 2 }}
-                      />
-                    </Button>
-                  )}
+                      {organizer?.issealed || organizer?.status === "Completed" ? "Completed" : "Submit"}
+                    </button>
+                  </div>
 
-                  <Button
-                    onClick={handleSubmit}
-                    color="primary"
-                    disabled={organizer?.issealed || organizer?.status === "Completed"}
-                    sx={{
-                      backgroundColor: organizer?.issealed || organizer?.status === "Completed" 
-                        ? "grey.400" 
-                        : "text.menu",
-                      color: "primary.contrastText",
-                      "&:hover": { 
-                        backgroundColor: organizer?.issealed || organizer?.status === "Completed" 
-                          ? "grey.400" 
-                          : "menu.dark", 
-                        boxShadow: 1 
-                      },
-                      transition: "background-color 0.2s ease",
-                      "&.Mui-disabled": {
-                        color: "white",
-                        backgroundColor: "grey.400",
-                      }
-                    }}
-                  >
-                    {organizer?.issealed || organizer?.status === "Completed" ? "Completed" : "Submit"}
-                  </Button>
-                </Box>
-
-                <Box sx={{ display: "flex", alignItems: "flex-end" }}>
-                  <Typography>
+                  <div className="text-sm text-gray-600">
                     Step {activeStep + 1} of {totalSteps}
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          </DialogContent>
-        </Dialog>
-      </LocalizationProvider>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {/* </LocalizationProvider> */}
 
       <FileUploadDrawer
         isOpen={isDocumentForm}
@@ -4469,7 +4198,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
                   fileName: fileData.fileName,
                   filePath: fileData.filePath,
                   uploadDate: new Date().toISOString(),
-                  uploadedBy: accountName ,
+                  uploadedBy: accountName,
                   status: "completed",
                 })),
               ],

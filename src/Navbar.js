@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Bell, Search, Sun, Moon, ChevronDown } from "lucide-react";
 
@@ -11,21 +11,30 @@ import ArticleIcon from "@mui/icons-material/Article";
 import PaymentsIcon from "@mui/icons-material/Payments";
 import SettingsIcon from "@mui/icons-material/Settings";
 import Logo from "./Images/snplogo-removebg-preview.png";
-// ✅ Your existing API
-import { sidebarAPI, accountsAPI } from "./services/api";
+// ✅ Your existing API4
 
+import { sidebarAPI, accountsAPI } from "./services/api";
+import { useContactAuth } from "./context/Context"; // adjust path if needed
 export default function Navbar() {
   const [menuItems, setMenuItems] = useState([]);
   const [accountInfo, setAccountInfo] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-
+  // const [darkMode, setDarkMode] = useState(false);
+  const { logout, accounts, setSelectedAccount } = useContactAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const accountId = sessionStorage.getItem("accountId");
   const email = sessionStorage.getItem("email");
 
+  const handleSwitchAccount = (id) => {
+    if (id === accountId) return;
+
+    setSelectedAccount(id);
+
+    // refetch account info
+    navigate("/home"); // or current route
+  };
   // ================= ICON MAPPING =================
   const iconMapping = {
     HomeFilledIcon: HomeFilledIcon,
@@ -66,27 +75,40 @@ export default function Navbar() {
   }, [accountId]);
 
   // ================= DARK MODE =================
-  useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    if (saved === "dark") {
-      document.documentElement.classList.add("dark");
-      setDarkMode(true);
-    }
-  }, []);
+  // useEffect(() => {
+  //   const saved = localStorage.getItem("theme");
+  //   if (saved === "dark") {
+  //     document.documentElement.classList.add("dark");
+  //     setDarkMode(true);
+  //   }
+  // }, []);
 
-  const toggleDarkMode = () => {
-    document.documentElement.classList.toggle("dark");
-    const isDark = document.documentElement.classList.contains("dark");
-    localStorage.setItem("theme", isDark ? "dark" : "light");
-    setDarkMode(isDark);
-  };
+  // const toggleDarkMode = () => {
+  //   document.documentElement.classList.toggle("dark");
+  //   const isDark = document.documentElement.classList.contains("dark");
+  //   localStorage.setItem("theme", isDark ? "dark" : "light");
+  //   setDarkMode(isDark);
+  // };
 
   // ================= LOGOUT =================
   const handleLogout = () => {
-    sessionStorage.clear();
-    localStorage.removeItem("token");
-    navigate("/login");
+    logout();
   };
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   return (
     <div
       className="
@@ -154,12 +176,12 @@ export default function Navbar() {
           </div>
 
           {/* Dark Mode */}
-          <button
+          {/* <button
             onClick={toggleDarkMode}
             className="p-2 rounded-lg hover:bg-muted transition"
           >
             {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+          </button> */}
 
           {/* Notification */}
           <button className="p-2 rounded-lg hover:bg-muted transition">
@@ -167,7 +189,8 @@ export default function Navbar() {
           </button>
 
           {/* PROFILE */}
-          <div className="relative">
+          {/* <div className="relative"> */}
+          <div className="relative" ref={dropdownRef}>
             <div
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center gap-2 cursor-pointer"
@@ -230,17 +253,48 @@ export default function Navbar() {
                     <p className="text-xs text-muted-foreground">{email}</p>
                   </div>
                 </div>
+                {/* SWITCH ACCOUNT */}
+                {accounts.length > 1 && (
+                  <div className="border-b border-border">
+                    <p className="px-4 py-2 text-xs text-muted-foreground font-medium">
+                      Switch Account
+                    </p>
 
+                    {accounts.map((acc) => (
+                      <button
+                        key={acc._id}
+                        onClick={() => {
+                          handleSwitchAccount(acc._id);
+                          setDropdownOpen(false); // ✅ close
+                        }}
+                        // onClick={() => handleSwitchAccount(acc._id)}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-muted transition flex justify-between items-center
+          ${acc._id === accountId ? "bg-primary/10 text-primary" : ""}
+        `}
+                      >
+                        <span>{acc.accountName}</span>
+
+                        {acc._id === accountId && (
+                          <span className="text-xs font-medium">Active</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {/* MENU ITEMS */}
-                <button
+                {/* <button
                   onClick={() => navigate("/profile")}
                   className="w-full text-left px-4 py-2 hover:bg-muted transition"
                 >
                   Profile
-                </button>
+                </button> */}
 
                 <button
-                  onClick={() => navigate("/settings")}
+                  onClick={() => {
+                    navigate("/settings");
+                    setDropdownOpen(false);
+                  }}
+                  // onClick={() => navigate("/settings")}
                   className="w-full text-left px-4 py-2 hover:bg-muted transition"
                 >
                   Settings
