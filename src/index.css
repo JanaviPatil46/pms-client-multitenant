@@ -294,3 +294,25 @@
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
 }
+
+#root {
+  overflow-x: hidden;
+}
+/* Remove black transparent shadow from drawers */
+.MuiDrawer-root .MuiPaper-root,
+.MuiModal-root .MuiPaper-root {
+  box-shadow: none !important;
+}
+
+/* If using custom drawer components without MUI, target the drawer overlay */
+.drawer-overlay,
+.drawer-backdrop {
+  background-color: transparent !important;
+}
+
+/* Remove any backdrop blur or shadow effects */
+[class*="drawer"] [class*="backdrop"],
+[class*="Drawer"] [class*="backdrop"] {
+  background-color: rgba(0, 0, 0, 0) !important;
+  backdrop-filter: none !important;
+}

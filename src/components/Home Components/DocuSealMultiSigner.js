@@ -400,30 +400,32 @@ const DocuSealMultiSigner = ({ accountId }) => {
   };
 
   const updateStatus = async (item, statusType, newValue) => {
-    try {
-      // const res = await fetch(
-      //   "https://www.snptaxes.com/api/accountsdoc/updateStatus",
-      //   {
-      //     method: "POST",
-      //     headers: { "Content-Type": "application/json" },
-      //     body: JSON.stringify({
-      //       targetPath: item.path,
-      //       status: { [statusType]: newValue },
-      //     }),
-      //   }
-      // );
-      const body = {
-        targetPath: item.path,
-        status: { [statusType]: newValue },
-      };
+  console.log("item", item, statusType, newValue);
 
-      const res = await accountDocsAPI.updateStatus(body);
-      console.log("responce,", res)
-      if (!res.ok) alert("Failed to update status");
-    } catch (err) {
-      console.error(err);
+  try {
+    const body = {
+      targetPath: item.path,
+      status: { [statusType]: newValue },
+    };
+
+    const res = await accountDocsAPI.updateStatus(body);
+
+    console.log("response", res);
+
+    // ✅ Axios success check
+    if (res.status !== 200) {
+      alert("Failed to update status");
+      return;
     }
-  };
+
+    console.log("Status updated successfully");
+  } catch (err) {
+    console.error(err);
+    console.log("status failed error", err);
+
+    alert("Something went wrong");
+  }
+};
 
   const matchingSubmitters = submissions
     .flatMap((submission) =>
