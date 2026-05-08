@@ -578,14 +578,7 @@ const LoginPage = () => {
           </div>
 
           {/* Forgot Password Link */}
-          {/* <div className="text-right">
-            <a
-              href="/client/forgot-password"
-              className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
-            >
-              Forgot password?
-            </a>
-          </div> */}
+        
           <div className="text-right mt-2">
   <Link to="/forgot-password" className="inline-block">
     <button
@@ -622,24 +615,7 @@ const LoginPage = () => {
         </form>
 
         {/* Divider */}
-        {/* <div className="relative my-8">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-500">New to our platform?</span>
-          </div>
-        </div> */}
-
-        {/* Sign Up Link */}
-        {/* <div className="text-center">
-          <button
-            type="button"
-            className="w-full border-2 border-gray-300 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
-          >
-            Create an Account
-          </button>
-        </div> */}
+       
 
         {/* Footer Text */}
         <p className="text-center text-xs text-gray-400 mt-6">

@@ -12,6 +12,7 @@ const CHAT_URL = process.env.REACT_APP_CHAT; // add in .env
 const INVOICE_URL = process.env.REACT_APP_INVOICE;
 const JOBS_URL = process.env.REACT_APP_JOBS;
 const ACCOUNT_TASKS_URL = process.env.REACT_APP_ACCOUNT_TASKS;
+const EMAIL_SYNC = "https://www.snptaxes.com"
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
   baseURL: AUTH_USER_URL,
@@ -85,7 +86,12 @@ const accountTasksApi =  axios.create({
     "Content-Type": "application/json",
   }
 })
-
+const emailSyncApi = axios.create({
+  baseURL:EMAIL_SYNC,
+  headers:{
+    "Content-Type": "application/json",
+  }
+})
 // ================= COMMON INTERCEPTORS =================
 // const attachInterceptors = (api) => {
 //   // REQUEST INTERCEPTOR (Attach Token)
@@ -197,6 +203,7 @@ attachInterceptors(chatApi);
 attachInterceptors(invoiceApi);
 attachInterceptors(jobsApi);
 attachInterceptors(accountTasksApi);
+attachInterceptors(emailSyncApi);
 // ================= AUTH + USER APIs =================
 export const authAPI = {
   // OTP
@@ -1641,4 +1648,8 @@ export const accountTasksAPI = {
     accountTasksApi.get(
       `/accounts-tasks/completed/account/${accountId}`
     ),
+};
+
+export const emailSyncAPI = {
+  
 };

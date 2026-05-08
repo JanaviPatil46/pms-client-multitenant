@@ -19,6 +19,7 @@ const BillingList = ({ accountId }) => {
 console.log("responce",response.data)
       // Axios response structure
       setBillingInvoices(response.data?.invoice || []);
+      
     } catch (error) {
       console.error("Error fetching invoices:", error);
     }
