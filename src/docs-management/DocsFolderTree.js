@@ -73,7 +73,7 @@
 //   console.log("acount id for the documentation", accountId);
 //   const [error, setError] = useState("");
 //   const FolderTreeView = ({ accountId }) => {
-  
+
 //     console.log("folder structure of account is", accountId);
 //     const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
 //     const [selectedInvoiceFile, setSelectedInvoiceFile] = useState(null);
@@ -104,8 +104,6 @@
 //     const [bulkMoveDrawerOpen, setBulkMoveDrawerOpen] = useState(false);
 
 //     const [bulkOperationLoading, setBulkOperationLoading] = useState(false);
-
-  
 
 //   const handleTrashClick = () => {
 //    navigate(`/trashDocs`);
@@ -195,22 +193,22 @@
 //     };
 
 //     useEffect(() => {
-     
+
 //       fetchAccountDetails();
-      
+
 //     }, [accountId]);
 //     // API call to fetch folder tree for a given template ID
 //   const fetchFolderTree = async (accountId) => {
 //   try {
 //     const res = await accountDocsAPI.clientListFoldersAndFiles(accountId);
 //     console.log("response", res);
-    
+
 //     // Axios response has data property directly
 //     if (res.status === 200 || res.status === 200) {
 //       // The actual data is in res.data
 //       const responseData = res;
 //       console.log("janavi patil", responseData.contents);
-      
+
 //       if (responseData.data?.contents) {
 //         setFolderTree(responseData.data.contents);
 //         // Check for pending approval documents
@@ -482,7 +480,6 @@
 //     setBulkOperationLoading(false);
 //   }
 // };
-   
 
 // const trashItem = async (item) => {
 //   if (!item?.path) return alert("Invalid path");
@@ -539,7 +536,7 @@
 //     console.error("Download error:", err);
 //   }
 // };
-   
+
 //     const targetEmail = sessionStorage.getItem("email");
 //     const [selectedSlug, setSelectedSlug] = useState(null);
 //     const [dialogOpen, setDialogOpen] = useState(false);
@@ -554,7 +551,7 @@
 //       setDialogOpen(false);
 //       setSelectedSlug(null);
 //     };
-    
+
 //    const fetchInvoicesByIds = async (ids = []) => {
 //   try {
 //     if (!ids.length) return [];
@@ -977,7 +974,7 @@
 //         </Typography>
 //       );
 //     };
-  
+
 //     const getStatusChip = (meta, isFolder) => {
 //       // Return null for folders - don't show status chips for folders
 //       if (isFolder) return null;
@@ -1441,7 +1438,7 @@
 //                 >
 //                   Move
 //                 </Button>
-                
+
 //                 <Button
 //                   variant="contained"
 //                   size="small"
@@ -1853,7 +1850,7 @@
 //           <Typography variant="h6" gutterBottom>
 //             📜 Folder Explorer
 //           </Typography>
-         
+
 //           {folderTree && folderTree.length > 0 ? (
 //             <>
 //               <TableContainer>
@@ -1861,7 +1858,7 @@
 //                   <TableHead>
 //                     <TableRow>
 //                       <TableCell sx={{ width: "50px" }}>
-                        
+
 //                       </TableCell>
 //                       <TableCell>Name</TableCell>
 //                       <TableCell>Status</TableCell>
@@ -1944,13 +1941,12 @@
 
 // export default DocsFolderTree;
 
-
 import React, { useState, useEffect, useContext } from "react";
 import {
   Folder as FolderIcon,
   InsertDriveFile as FileIcon,
   Lock as LockIcon,
-  LockOpen as LockOpenIcon,
+  // LockOpen as LockOpenIcon,
 } from "@mui/icons-material";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import DriveFolderUploadIcon from "@mui/icons-material/DriveFolderUpload";
@@ -1959,7 +1955,7 @@ import {
   Folder as FolderClosedIcon,
   FolderOpen as FolderOpenIcon,
 } from "lucide-react";
-import { EllipsisVertical,Info,TriangleAlert } from "lucide-react";
+import { EllipsisVertical, Info, TriangleAlert } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import FileUploadDrawer from "./drawers/FileUploadDrawer";
 import CreteFolderDrawer from "./drawers/CreteFolderDrawer";
@@ -1979,22 +1975,37 @@ import {
 import axios from "axios";
 import { AiFillFileUnknown } from "react-icons/ai";
 import { DocusealForm } from "@docuseal/react";
-import { toast } from "material-react-toastify";
+// import { toast } from "material-react-toastify";
 import CancelIcon from "@mui/icons-material/Cancel";
 import DownloadIcon from "@mui/icons-material/Download";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import { accountsAPI, accountDocsAPI, invoiceAPI } from "../services/api";
 import { X } from "lucide-react";
-
+import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
+import { 
+  ChevronDownIcon, 
+  FolderPlusIcon,
+  ArrowUpTrayIcon,  // For upload file
+  // FolderIcon,       // For upload folder (alternative)
+  PencilIcon,
+  ArrowRightCircleIcon,
+  LockClosedIcon,
+  LockOpenIcon,
+  TrashIcon,
+  ArrowDownTrayIcon,
+  DocumentArrowUpIcon,  // Alternative for file upload
+  // FolderOpenIcon        // Alternative for folder upload
+} from '@heroicons/react/24/outline';
+import { useToast } from "../hooks/useToast";
 const DocsFolderTree = () => {
   const [accountId, setAccountId] = useState(
-    sessionStorage.getItem("accountId")
+    sessionStorage.getItem("accountId"),
   );
   const SIGNATURE_API = process.env.REACT_APP_ESIGNATURE_API;
   console.log("acount id for the documentation", accountId);
   const [error, setError] = useState("");
-  
+const toast = useToast();
   const FolderTreeView = ({ accountId }) => {
     console.log("folder structure of account is", accountId);
     const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
@@ -2008,7 +2019,7 @@ const DocsFolderTree = () => {
     const [renameDrawer, SetRenameDrawer] = useState(null);
     const [fileUploadDrawerOpen, setFileUploadDrawerOpen] = useState(null);
     const [moveDrawerOpen, setMoveDrawerOpen] = useState(null);
-
+const [selectedItemForPopover, setSelectedItemForPopover] = useState(null);
     const [folderTree, setFolderTree] = useState([]);
     const [openViewer, setOpenViewer] = useState(false);
     const [selectedDoc, setSelectedDoc] = useState(null);
@@ -2067,7 +2078,7 @@ const DocsFolderTree = () => {
     const isFolderPartiallySelected = (item) => {
       const allChildPaths = getAllChildrenPaths(item);
       const selectedCount = allChildPaths.filter((path) =>
-        selectedItems.has(path)
+        selectedItems.has(path),
       ).length;
       return selectedCount > 0 && selectedCount < allChildPaths.length;
     };
@@ -2109,11 +2120,11 @@ const DocsFolderTree = () => {
       try {
         const res = await accountDocsAPI.clientListFoldersAndFiles(accountId);
         console.log("response", res);
-        
+
         if (res.status === 200 || res.status === 200) {
           const responseData = res;
           console.log("janavi patil", responseData.contents);
-          
+
           if (responseData.data?.contents) {
             setFolderTree(responseData.data.contents);
             checkForPendingApprovals(responseData.data.contents);
@@ -2125,7 +2136,9 @@ const DocsFolderTree = () => {
         }
       } catch (err) {
         console.error("Error fetching folder tree:", err);
-        setError("Error fetching folder tree: " + (err.message || "Unknown error"));
+        setError(
+          "Error fetching folder tree: " + (err.message || "Unknown error"),
+        );
       }
     };
 
@@ -2173,24 +2186,36 @@ const DocsFolderTree = () => {
       }));
     };
 
-    const handleMenuOpen = (event, item) => {
-      event.stopPropagation();
-      setMenuAnchorEl(event.currentTarget);
-      const isClientUploadedDocs =
-        item.name?.toLowerCase() === "client uploaded documents";
-      setSelectedFolderForMenu({
-        ...item,
-        isFile: item.type === "file",
-        isFolder: item.type === "folder",
-        isParent:
-          (!item.path.includes("/") && item.type === "folder") ||
-          isClientUploadedDocs,
-      });
-    };
-
-    const handleMenuClose = () => {
-      setMenuAnchorEl(null);
-    };
+    // const handleMenuOpen = (event, item) => {
+    //   event.stopPropagation();
+    //   setMenuAnchorEl(event.currentTarget);
+    //   const isClientUploadedDocs =
+    //     item.name?.toLowerCase() === "client uploaded documents";
+    //   setSelectedFolderForMenu({
+    //     ...item,
+    //     isFile: item.type === "file",
+    //     isFolder: item.type === "folder",
+    //     isParent:
+    //       (!item.path.includes("/") && item.type === "folder") ||
+    //       isClientUploadedDocs,
+    //   });
+    // };
+const handleMenuOpen = (event, item) => {
+  event.stopPropagation();
+  const isClientUploadedDocs =
+    item.name?.toLowerCase() === "client uploaded documents";
+  setSelectedItemForPopover({
+    ...item,
+    isFile: item.type === "file",
+    isFolder: item.type === "folder",
+    isParent:
+      (!item.path.includes("/") && item.type === "folder") ||
+      isClientUploadedDocs,
+  });
+};
+   const handleMenuClose = () => {
+  setSelectedItemForPopover(null);
+};
 
     const toggleReadStatus = (item) => {
       const newValue = !(item.meta?.readStatus || false);
@@ -2214,7 +2239,7 @@ const DocsFolderTree = () => {
       statusType,
       newValue,
       action,
-      reason = ""
+      reason = "",
     ) => {
       try {
         if (!item?.path) return alert("Invalid item selected");
@@ -2226,12 +2251,11 @@ const DocsFolderTree = () => {
           },
         };
         const res = await accountDocsAPI.updateStatus(body);
-           // ✅ Axios response
-    const data = res.data;
+        // ✅ Axios response
+        const data = res.data;
 
-    alert(data?.message || "Status updated successfully");
-    fetchFolderTree(accountId);
-       
+        alert(data?.message || "Status updated successfully");
+        fetchFolderTree(accountId);
       } catch (err) {
         console.error("Error updating status:", err);
         alert("Error updating status");
@@ -2277,7 +2301,7 @@ const DocsFolderTree = () => {
         return;
       }
       const confirmTrash = window.confirm(
-        `Are you sure you want to move ${selectedItems.size} item(s) to trash?`
+        `Are you sure you want to move ${selectedItems.size} item(s) to trash?`,
       );
       if (!confirmTrash) return;
       setBulkOperationLoading(true);
@@ -2291,7 +2315,7 @@ const DocsFolderTree = () => {
         console.log("Bulk trash response:", data);
         if (data.success) {
           toast.success(
-            `${data.trashedItems.length} item(s) moved to trash successfully`
+            `${data.trashedItems.length} item(s) moved to trash successfully`,
           );
           if (data.failedItems?.length > 0) {
             toast.warning(`${data.failedItems.length} item(s) failed`);
@@ -2340,7 +2364,7 @@ const DocsFolderTree = () => {
     const trashItem = async (item) => {
       if (!item?.path) return alert("Invalid path");
       const confirmTrash = window.confirm(
-        `Are you sure you want to move "${item.name}" to Trash?`
+        `Are you sure you want to move "${item.name}" to Trash?`,
       );
       if (!confirmTrash) return;
       try {
@@ -2400,7 +2424,7 @@ const DocsFolderTree = () => {
       try {
         if (!ids.length) return [];
         const fetchPromises = ids.map((id) =>
-          invoiceAPI.getInvoiceListById(id)
+          invoiceAPI.getInvoiceListById(id),
         );
         const results = await Promise.all(fetchPromises);
         const invoices = results
@@ -2503,7 +2527,7 @@ const DocsFolderTree = () => {
               {
                 method: "GET",
                 redirect: "follow",
-              }
+              },
             );
             const result = await response.json();
             console.log("Signature details:", result);
@@ -2533,7 +2557,7 @@ const DocsFolderTree = () => {
                 allCompleted: submission.submitters.every(
                   (submitter) =>
                     submitter.status === "completed" ||
-                    submitter.completed_at !== null
+                    submitter.completed_at !== null,
                 ),
               }))
               .filter((s) => s.email === targetEmail && !s.completed_at);
@@ -2544,7 +2568,7 @@ const DocsFolderTree = () => {
               openSignatureDialog(firstSlug);
             } else {
               const userSubmitters = submission.submitters.filter(
-                (s) => s.email === targetEmail
+                (s) => s.email === targetEmail,
               );
               if (userSubmitters.length > 0) {
                 const completedSubmitter = userSubmitters[0];
@@ -2555,7 +2579,7 @@ const DocsFolderTree = () => {
                   }, 500);
                 } else {
                   alert(
-                    "You are not authorized to sign this document at this time."
+                    "You are not authorized to sign this document at this time.",
                   );
                 }
               } else {
@@ -2645,7 +2669,7 @@ const DocsFolderTree = () => {
           "authStatus",
           newStatus,
           action,
-          cancelReason
+          cancelReason,
         );
         setOpenViewer(false);
         setCancelDialogOpen(false);
@@ -2755,13 +2779,15 @@ const DocsFolderTree = () => {
           <span
             key="signChip"
             className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
-              color === "orange" ? "border-orange-500 text-orange-700 bg-orange-50" :
-              color === "green" ? "border-green-500 text-green-700 bg-green-50" :
-              "border-gray-500 text-gray-700 bg-gray-50"
+              color === "orange"
+                ? "border-orange-500 text-orange-700 bg-orange-50"
+                : color === "green"
+                  ? "border-green-500 text-green-700 bg-green-50"
+                  : "border-gray-500 text-gray-700 bg-gray-50"
             }`}
           >
             {statusTextMap[meta.signStatus]}
-          </span>
+          </span>,
         );
       }
       if (APPROVAL_STATUSES.includes(meta.authStatus)) {
@@ -2772,7 +2798,10 @@ const DocsFolderTree = () => {
         if (meta.authStatus === "canceledApproval") color = "red";
         if (meta.authStatus === "canceledApproval" && meta.cancelReason) {
           chip = (
-            <div className="relative inline-block group" key="approvalCanceledChip">
+            <div
+              className="relative inline-block group"
+              key="approvalCanceledChip"
+            >
               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-red-500 text-red-700 bg-red-50 cursor-pointer">
                 Approval Canceled
               </span>
@@ -2786,10 +2815,13 @@ const DocsFolderTree = () => {
             <span
               key="approvalChip"
               className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
-                color === "orange" ? "border-orange-500 text-orange-700 bg-orange-50" :
-                color === "green" ? "border-green-500 text-green-700 bg-green-50" :
-                color === "red" ? "border-red-500 text-red-700 bg-red-50" :
-                "border-gray-500 text-gray-700 bg-gray-50"
+                color === "orange"
+                  ? "border-orange-500 text-orange-700 bg-orange-50"
+                  : color === "green"
+                    ? "border-green-500 text-green-700 bg-green-50"
+                    : color === "red"
+                      ? "border-red-500 text-red-700 bg-red-50"
+                      : "border-gray-500 text-gray-700 bg-gray-50"
               }`}
             >
               {approvalStatusTextMap[meta.authStatus]}
@@ -2806,13 +2838,15 @@ const DocsFolderTree = () => {
           <span
             key="invoiceLockChip"
             className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
-              color === "orange" ? "border-orange-500 text-orange-700 bg-orange-50" :
-              color === "green" ? "border-green-500 text-green-700 bg-green-50" :
-              "border-gray-500 text-gray-700 bg-gray-50"
+              color === "orange"
+                ? "border-orange-500 text-orange-700 bg-orange-50"
+                : color === "green"
+                  ? "border-green-500 text-green-700 bg-green-50"
+                  : "border-gray-500 text-gray-700 bg-gray-50"
             }`}
           >
             {invoiceStatusTextMap[meta.lockInvoiceStatus]}
-          </span>
+          </span>,
         );
       }
       if (chips.length === 0) return null;
@@ -2822,7 +2856,7 @@ const DocsFolderTree = () => {
     const findNewSystemTag = (item) => {
       console.log("Finding 'New' tag in item:", item);
       const newTag = item.meta?.newTags?.find(
-        (tag) => tag.isSystemTag && tag.tagName === "New"
+        (tag) => tag.isSystemTag && tag.tagName === "New",
       );
       if (newTag) return newTag;
       if (item.children && item.children.length > 0) {
@@ -2833,87 +2867,168 @@ const DocsFolderTree = () => {
       }
       return null;
     };
-const renderTableRows = (
-  items,
-  level = 0,
-  parentPath = "",
-  isInsideRestricted = false
-) => {
-  const sortedItems = [...items].sort((a, b) => {
-    if (a.type === "folder" && b.type !== "folder") return -1;
-    if (a.type !== "folder" && b.type === "folder") return 1;
-    return a.name.localeCompare(b.name);
-  });
-
-  return sortedItems.map((item) => {
-    console.log("itemlist", item);
-
-    const fullPath = item.path;
-    const meta = item.meta || {};
-    const isFolder = item.type === "folder";
-    const isSelected = selectedItems.has(fullPath);
-
-    const restrictedFolderName =
-      "firm documents shared with client";
-
-    const isRootFolder = level === 0 && isFolder;
-
-    const isFirmDocsRoot =
-      isRootFolder &&
-      item.name?.toLowerCase() ===
-        restrictedFolderName.toLowerCase();
-
-    const insideRestricted =
-      isInsideRestricted || isFirmDocsRoot;
-
-    const hideMenu = insideRestricted;
-
-    const isPartiallySelected = isFolder
-      ? isFolderPartiallySelected(item)
-      : false;
-
-    const handleSafeFileClick = () => {
-      if (meta.readOnly) {
-        alert("This file is locked and cannot be opened.");
-        return;
+    
+// Helper function to get menu items based on item type
+const getMenuItems = (item) => {
+  if (item.isParent) {
+    return [
+      { 
+        name: 'Create New Folder', 
+        icon: FolderPlusIcon, 
+        action: 'createFolder',
+        color: 'text-blue-600'
       }
+    ];
+  }
+  
+  if (item.isFile) {
+    const isLocked = item.meta?.readOnly === true;
+    return [
+      { name: 'Rename', icon: PencilIcon, action: 'rename', disabled: isLocked, color: 'text-gray-600' },
+      { name: 'Move', icon: ArrowRightCircleIcon, action: 'move', disabled: isLocked, color: 'text-gray-600' },
+      { name: 'Download', icon: ArrowDownTrayIcon, action: 'download', disabled: isLocked, color: 'text-gray-600' },
+      { separator: true },
+      { name: 'Delete', icon: TrashIcon, action: 'delete', disabled: isLocked, color: 'text-red-600' }
+    ];
+  }
+  
+  if (item.isFolder) {
+    const isLocked = item.meta?.readOnly === true;
+    const isRead = item.meta?.readStatus === true;
+    return [
+      { name: 'New Folder', icon: FolderPlusIcon, action: 'createFolder', disabled: isLocked, color: 'text-blue-600' },
+      { name: 'Upload File', icon: ArrowUpTrayIcon, action: 'uploadFile', disabled: isLocked, color: 'text-emerald-600' },
+      { name: 'Upload Folder', icon: FolderIcon, action: 'uploadFolder', disabled: isLocked, color: 'text-amber-600' },
+      { separator: true },
+      { name: 'Rename', icon: PencilIcon, action: 'rename', disabled: isLocked, color: 'text-indigo-600' },
+      { name: 'Move', icon: ArrowRightCircleIcon, action: 'move', disabled: isLocked, color: 'text-purple-600' },
+      { separator: true },
+      { name: isRead ? 'Mark as Unread' : 'Mark as Read', icon: isRead ? LockOpenIcon : LockClosedIcon, action: 'toggleReadStatus', disabled: isLocked, color: isRead ? 'text-green-600' : 'text-red-600' },
+      { name: isLocked ? 'Unlock' : 'Lock', icon: LockClosedIcon, action: 'toggleReadOnly', disabled: isLocked, color: 'text-amber-600' },
+      { separator: true },
+      { name: 'Delete', icon: TrashIcon, action: 'delete', disabled: isLocked, color: 'text-red-600' }
+    ];
+  }
+  
+  return [];
+};
+const [selectedItemForDrawer, setSelectedItemForDrawer] = useState(null);
+// Handle menu actions
+// Update handleMenuAction
+const handleMenuAction = (action) => {
+  if (!selectedItemForPopover) return;
+  
+  // Store the selected item for the drawer
+  setSelectedFolderForMenu(selectedItemForPopover);
+  
+  switch(action) {
+    case 'createFolder':
+      setNewFolderDrawerOpen(true);
+      break;
+    case 'rename':
+      SetRenameDrawer(true);
+      break;
+    case 'move':
+      setMoveDrawerOpen(true);
+      break;
+    case 'delete':
+      trashItem(selectedItemForPopover);
+      break;
+    case 'download':
+      handleDownloadFile(selectedItemForPopover);
+      break;
+    case 'uploadFile':
+      setFileUploadDrawerOpen(true);
+      break;
+    case 'uploadFolder':
+      setFolderUploadDrawerOpen(true);
+      break;
+    case 'toggleReadStatus':
+      toggleReadStatus(selectedItemForPopover);
+      break;
+    case 'toggleReadOnly':
+      toggleReadOnly(selectedItemForPopover);
+      break;
+    default:
+      break;
+  }
+  
+  setSelectedItemForPopover(null);
+};
+    const renderTableRows = (
+      items,
+      level = 0,
+      parentPath = "",
+      isInsideRestricted = false,
+    ) => {
+      const sortedItems = [...items].sort((a, b) => {
+        if (a.type === "folder" && b.type !== "folder") return -1;
+        if (a.type !== "folder" && b.type === "folder") return 1;
+        return a.name.localeCompare(b.name);
+      });
 
-      if (!isFolder) {
-        handleFileClick(fullPath, item.name, meta);
-      }
-    };
+      return sortedItems.map((item) => {
+        console.log("itemlist", item);
 
-    const inheritedNewTag = isFolder
-      ? findNewSystemTag(item)
-      : null;
+        const fullPath = item.path;
+        const meta = item.meta || {};
+        const isFolder = item.type === "folder";
+        const isSelected = selectedItems.has(fullPath);
 
-    return (
-      <React.Fragment key={fullPath}>
-        
-        {/* ROW */}
-        <tr
-          className={`
+        const restrictedFolderName = "firm documents shared with client";
+
+        const isRootFolder = level === 0 && isFolder;
+
+        const isFirmDocsRoot =
+          isRootFolder &&
+          item.name?.toLowerCase() === restrictedFolderName.toLowerCase();
+
+        const insideRestricted = isInsideRestricted || isFirmDocsRoot;
+
+        const hideMenu = insideRestricted;
+
+        const isPartiallySelected = isFolder
+          ? isFolderPartiallySelected(item)
+          : false;
+
+        const handleSafeFileClick = () => {
+          if (meta.readOnly) {
+            alert("This file is locked and cannot be opened.");
+            return;
+          }
+
+          if (!isFolder) {
+            handleFileClick(fullPath, item.name, meta);
+          }
+        };
+
+        const inheritedNewTag = isFolder ? findNewSystemTag(item) : null;
+
+        return (
+          <React.Fragment key={fullPath}>
+            {/* ROW */}
+            <tr
+              className={`
             group transition-all duration-200
             border-b border-slate-100
             hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50
-            ${isSelected
-              ? "bg-blue-50 border-blue-100 shadow-inner"
-              : "bg-white"}
+            ${
+              isSelected
+                ? "bg-blue-50 border-blue-100 shadow-inner"
+                : "bg-white"
+            }
           `}
-          style={{
-            cursor: meta.readOnly
-              ? "not-allowed"
-              : "pointer",
-          }}
-        >
-
-          {/* CHECKBOX */}
-          <td className="px-5 py-4 w-[60px] align-middle">
-            <div className="flex items-center justify-center">
-              {isFolder ? (
-                <input
-                  type="checkbox"
-                  className="
+              style={{
+                cursor: meta.readOnly ? "not-allowed" : "pointer",
+              }}
+            >
+              {/* CHECKBOX */}
+              <td className="px-5 py-4 w-[60px] align-middle">
+                <div className="flex items-center justify-center">
+                  {isFolder ? (
+                    <input
+                      type="checkbox"
+                      className="
                     w-4 h-4 rounded-md
                     border-slate-300
                     text-blue-600
@@ -2921,30 +3036,23 @@ const renderTableRows = (
                     disabled:opacity-40
                     transition-all
                   "
-                  checked={isSelected}
-                  ref={(el) => {
-                    if (el) {
-                      el.indeterminate =
-                        isPartiallySelected;
-                    }
-                  }}
-                  disabled={
-                    insideRestricted || meta.readOnly
-                  }
-                  onChange={() => {
-                    if (
-                      insideRestricted ||
-                      meta.readOnly
-                    )
-                      return;
+                      checked={isSelected}
+                      ref={(el) => {
+                        if (el) {
+                          el.indeterminate = isPartiallySelected;
+                        }
+                      }}
+                      disabled={insideRestricted || meta.readOnly}
+                      onChange={() => {
+                        if (insideRestricted || meta.readOnly) return;
 
-                    handleFolderSelect(item);
-                  }}
-                />
-              ) : (
-                <input
-                  type="checkbox"
-                  className="
+                        handleFolderSelect(item);
+                      }}
+                    />
+                  ) : (
+                    <input
+                      type="checkbox"
+                      className="
                     w-4 h-4 rounded-md
                     border-slate-300
                     text-blue-600
@@ -2952,38 +3060,31 @@ const renderTableRows = (
                     disabled:opacity-40
                     transition-all
                   "
-                  checked={isSelected}
-                  disabled={
-                    insideRestricted || meta.readOnly
-                  }
-                  onChange={() => {
-                    if (
-                      insideRestricted ||
-                      meta.readOnly
-                    )
-                      return;
+                      checked={isSelected}
+                      disabled={insideRestricted || meta.readOnly}
+                      onChange={() => {
+                        if (insideRestricted || meta.readOnly) return;
 
-                    handleSelectItem(fullPath);
-                  }}
-                />
-              )}
-            </div>
-          </td>
+                        handleSelectItem(fullPath);
+                      }}
+                    />
+                  )}
+                </div>
+              </td>
 
-          {/* NAME */}
-          <td
-            className="px-5 py-4"
-            style={{
-              paddingLeft: `${level * 22 + 12}px`,
-            }}
-          >
-            <div className="flex items-center gap-2">
-
-              {/* FOLDER */}
-              {isFolder ? (
-                <>
-                  <button
-                    className="
+              {/* NAME */}
+              <td
+                className="px-5 py-4"
+                style={{
+                  paddingLeft: `${level * 22 + 12}px`,
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  {/* FOLDER */}
+                  {isFolder ? (
+                    <>
+                      <button
+                        className="
                       h-9 w-9 rounded-xl
                       flex items-center justify-center
                       hover:bg-white hover:shadow-sm
@@ -2992,103 +3093,84 @@ const renderTableRows = (
                       transition-all duration-200
                       disabled:opacity-50
                     "
-                    onClick={() =>
-                      toggleFolder(
-                        fullPath,
-                        meta.readOnly
-                      )
-                    }
-                    disabled={meta.readOnly}
-                  >
-                    {expandedFolders[fullPath] ? (
-                      <FolderOpenIcon
-                        color="#2563eb"
-                        className="w-5 h-5"
-                      />
-                    ) : (
-                      <FolderClosedIcon
-                        color="#64748b"
-                        className="w-5 h-5"
-                      />
-                    )}
-                  </button>
+                        onClick={() => toggleFolder(fullPath, meta.readOnly)}
+                        disabled={meta.readOnly}
+                      >
+                        {expandedFolders[fullPath] ? (
+                          <FolderOpenIcon color="#2563eb" className="w-5 h-5" />
+                        ) : (
+                          <FolderClosedIcon
+                            color="#64748b"
+                            className="w-5 h-5"
+                          />
+                        )}
+                      </button>
 
-                  <div
-                    className="flex items-center flex-wrap gap-2"
-                    onClick={() =>
-                      toggleFolder(
-                        fullPath,
-                        meta.readOnly
-                      )
-                    }
-                  >
-                    <span
-                      className={`
+                      <div
+                        className="flex items-center flex-wrap gap-2"
+                        onClick={() => toggleFolder(fullPath, meta.readOnly)}
+                      >
+                        <span
+                          className={`
                         text-sm font-semibold tracking-tight
-                        ${
-                          meta.readOnly
-                            ? "text-slate-400"
-                            : "text-slate-700"
-                        }
+                        ${meta.readOnly ? "text-slate-400" : "text-slate-700"}
                       `}
-                    >
-                      {item.name}
-                    </span>
+                        >
+                          {item.name}
+                        </span>
 
-                    {/* TAG */}
-                    {inheritedNewTag && (
-                      <span
-                        className="
+                        {/* TAG */}
+                        {inheritedNewTag && (
+                          <span
+                            className="
                           inline-flex items-center
                           px-2 py-1 rounded-full
                           text-[10px] font-semibold
                           text-white shadow-sm
                         "
-                        style={{
-                          backgroundColor:
-                            inheritedNewTag.tagColour,
-                        }}
-                      >
-                        {inheritedNewTag.tagName}
-                      </span>
-                    )}
+                            style={{
+                              backgroundColor: inheritedNewTag.tagColour,
+                            }}
+                          >
+                            {inheritedNewTag.tagName}
+                          </span>
+                        )}
 
-                    {/* LOCK */}
-                    {meta.readOnly && (
-                      <span
-                        className="
+                        {/* LOCK */}
+                        {meta.readOnly && (
+                          <span
+                            className="
                           inline-flex items-center
                           px-2 py-0.5 rounded-full
                           bg-red-50 text-red-600
                           border border-red-200
                           text-[10px] font-semibold
                         "
-                      >
-                        Locked
-                      </span>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* FILE ICON */}
-                  <div
-                    className="
+                          >
+                            Locked
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* FILE ICON */}
+                      <div
+                        className="
                       h-10 w-10 rounded-xl
                       bg-slate-50 border border-slate-200
                       flex items-center justify-center
                       shadow-sm
                       group-hover:bg-white
                     "
-                  >
-                    {getFileIcon(item.name)}
-                  </div>
+                      >
+                        {getFileIcon(item.name)}
+                      </div>
 
-                  {/* FILE DETAILS */}
-                  <div className="flex flex-col gap-1">
-
-                    <span
-                      className={`
+                      {/* FILE DETAILS */}
+                      <div className="flex flex-col gap-1">
+                        <span
+                          className={`
                         text-sm font-medium transition-all
                         ${
                           meta.readOnly
@@ -3096,1414 +3178,787 @@ const renderTableRows = (
                             : "text-blue-700 hover:text-blue-800"
                         }
                       `}
-                      onClick={handleSafeFileClick}
-                      style={{
-                        cursor: meta.readOnly
-                          ? "not-allowed"
-                          : "pointer",
-                      }}
-                    >
-                      {item.name}
-                    </span>
+                          onClick={handleSafeFileClick}
+                          style={{
+                            cursor: meta.readOnly ? "not-allowed" : "pointer",
+                          }}
+                        >
+                          {item.name}
+                        </span>
 
-                    {/* TAGS */}
-                    <div className="flex flex-wrap gap-1">
-                      {meta.newTags?.map(
-                        (tag, index) => (
-                          <span
-                            key={index}
-                            className="
+                        {/* TAGS */}
+                        <div className="flex flex-wrap gap-1">
+                          {meta.newTags?.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="
                               inline-flex items-center
                               px-2 py-0.5 rounded-full
                               text-[10px] font-semibold
                               text-white shadow-sm
                             "
-                            style={{
-                              backgroundColor:
-                                tag.tagColour,
-                            }}
-                          >
-                            {tag.tagName}
-                          </span>
-                        )
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </td>
+                              style={{
+                                backgroundColor: tag.tagColour,
+                              }}
+                            >
+                              {tag.tagName}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </td>
 
-          {/* STATUS */}
-          <td className="px-5 py-4 align-middle">
-            <div className="flex items-center">
-              {getStatusChip(meta, isFolder)}
-            </div>
-          </td>
+              {/* STATUS */}
+              <td className="px-5 py-4 align-middle">
+                <div className="flex items-center">
+                  {getStatusChip(meta, isFolder)}
+                </div>
+              </td>
 
-          {/* UPLOADED DATE */}
-          <td className="px-5 py-4 align-middle">
-            <div
-              className="
+              {/* UPLOADED DATE */}
+              <td className="px-5 py-4 align-middle">
+                <div
+                  className="
                 inline-flex items-center
                 px-3 py-1 rounded-full
                 bg-slate-100
                 text-slate-600
                 text-xs font-semibold
               "
-            >
-              <UploadedInfo meta={meta} />
-            </div>
-          </td>
+                >
+                  <UploadedInfo meta={meta} />
+                </div>
+              </td>
 
-          {/* USER */}
-          <td className="px-5 py-4 align-middle">
-            <div className="flex items-center gap-2">
-              
-              <div
-                className="
+              {/* USER */}
+              <td className="px-5 py-4 align-middle">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="
                   h-9 w-9 rounded-full
                   bg-gradient-to-br from-blue-500 to-indigo-600
                   text-white text-xs font-bold
                   flex items-center justify-center
                   shadow-md
                 "
-              >
-                {meta.uploadedBy
-                  ?.charAt(0)
-                  ?.toUpperCase() || "S"}
-              </div>
+                  >
+                    {meta.uploadedBy?.charAt(0)?.toUpperCase() || "S"}
+                  </div>
 
-              <span className="text-sm font-medium text-slate-700">
-                {meta.uploadedBy || "System"}
-              </span>
-            </div>
-          </td>
+                  <span className="text-sm font-medium text-slate-700">
+                    {meta.uploadedBy || "System"}
+                  </span>
+                </div>
+              </td>
 
-          {/* ACTIONS */}
-          <td className="px-5 py-4 text-right align-middle">
-            {!hideMenu && (
-              <button
-                className="
-                  h-10 w-10 rounded-xl
-                  hover:bg-white hover:shadow-md
-                  border border-transparent
-                  hover:border-slate-200
-                  transition-all duration-200
-                  flex items-center justify-center
-                  opacity-70 group-hover:opacity-100
-                "
-                onClick={(e) =>
-                  handleMenuOpen(e, {
-                    ...item,
-                    fullPath,
-                  })
-                }
-              >
-                <EllipsisVertical className="w-5 h-5 text-slate-500" />
-              </button>
-            )}
-          </td>
-        </tr>
+              {/* ACTIONS */}
+           
+<td className="px-5 py-4 text-right align-middle">
+  {!hideMenu && (
+    <Popover className="relative">
+      {({ open, close }) => (
+        <>
+          <PopoverButton
+            as="button"
+            className="
+              h-10 w-10 rounded-xl
+              hover:bg-white hover:shadow-md
+              border border-transparent
+              hover:border-slate-200
+              transition-all duration-200
+              flex items-center justify-center
+              opacity-70 group-hover:opacity-100
+            "
+            onClick={(e) => {
+              e.stopPropagation();
+              // Set the selected item when button is clicked
+              const isClientUploadedDocs =
+                item.name?.toLowerCase() === "client uploaded documents";
+              setSelectedItemForPopover({
+                ...item,
+                fullPath: fullPath,
+                isFile: item.type === "file",
+                isFolder: item.type === "folder",
+                isParent:
+                  (!item.path.includes("/") && item.type === "folder") ||
+                  isClientUploadedDocs,
+              });
+            }}
+          >
+            <EllipsisVertical className="w-5 h-5 text-slate-500" />
+          </PopoverButton>
 
-        {/* CHILDREN */}
-        {isFolder &&
-          expandedFolders[fullPath] &&
-          item.children &&
-          item.children.length > 0 &&
-          renderTableRows(
-            item.children,
-            level + 1,
-            fullPath,
-            insideRestricted
+          {/* Only render PopoverPanel when we have a selected item */}
+          {selectedItemForPopover && (
+            <PopoverPanel
+              transition
+              anchor="bottom end"
+              className="
+                z-20 mt-2 w-56 origin-top-right 
+                rounded-2xl bg-white 
+                shadow-xl ring-1 ring-slate-900/5
+                transition duration-200 ease-out
+                data-closed:scale-95 data-closed:opacity-0
+                data-enter:scale-100 data-enter:opacity-100
+              "
+            >
+              {({ close: closePanel }) => (
+                <div className="p-1.5">
+                  {getMenuItems(selectedItemForPopover).map((menuItem, idx) => 
+                    menuItem.separator ? (
+                      <div key={`separator-${idx}`} className="my-1 border-t border-slate-100" />
+                    ) : (
+                      <button
+                        key={menuItem.name}
+                        disabled={menuItem.disabled}
+                        onClick={() => {
+                          handleMenuAction(menuItem.action);
+                          closePanel();
+                          close();
+                        }}
+                        className={`
+                          flex w-full items-center gap-3 
+                          rounded-xl px-3 py-2.5 text-sm
+                          transition-all duration-150
+                          ${menuItem.disabled 
+                            ? 'opacity-50 cursor-not-allowed text-slate-400' 
+                            : 'hover:bg-slate-50 text-slate-700'
+                          }
+                        `}
+                      >
+                        <menuItem.icon className={`h-5 w-5 ${menuItem.color || 'text-slate-500'} ${menuItem.disabled ? 'opacity-50' : ''}`} />
+                        <span className={`font-medium ${menuItem.disabled ? '' : ''}`}>
+                          {menuItem.name}
+                        </span>
+                      </button>
+                    )
+                  )}
+                </div>
+              )}
+            </PopoverPanel>
           )}
-      </React.Fragment>
-    );
-  });
-};
-    // const renderTableRows = (
-    //   items,
-    //   level = 0,
-    //   parentPath = "",
-    //   isInsideRestricted = false
-    // ) => {
-    //   const sortedItems = [...items].sort((a, b) => {
-    //     if (a.type === "folder" && b.type !== "folder") return -1;
-    //     if (a.type !== "folder" && b.type === "folder") return 1;
-    //     return a.name.localeCompare(b.name);
-    //   });
-    //   return sortedItems.map((item) => {
-    //     console.log("itemlist", item);
-    //     const fullPath = item.path;
-    //     const meta = item.meta || {};
-    //     const isFolder = item.type === "folder";
-    //     const isSelected = selectedItems.has(fullPath);
-    //     const restrictedFolderName = "firm documents shared with client";
-    //     const isRootFolder = level === 0 && isFolder;
-    //     const isFirmDocsRoot =
-    //       isRootFolder &&
-    //       item.name?.toLowerCase() === restrictedFolderName.toLowerCase();
-    //     const insideRestricted = isInsideRestricted || isFirmDocsRoot;
-    //     const hideMenu = insideRestricted;
-    //     const isPartiallySelected = isFolder
-    //       ? isFolderPartiallySelected(item)
-    //       : false;
-    //     const handleSafeFileClick = () => {
-    //       if (meta.readOnly) {
-    //         alert("This file is locked and cannot be opened.");
-    //         return;
-    //       }
-    //       if (!isFolder) {
-    //         handleFileClick(fullPath, item.name, meta);
-    //       }
-    //     };
-    //     const inheritedNewTag = isFolder ? findNewSystemTag(item) : null;
-    //     return (
-    //       <React.Fragment key={fullPath}>
-    //         <tr
-    //           className={`${isFolder ? "folder-row" : ""} ${
-    //             isSelected ? "bg-blue-200" : "bg-transparent"
-    //           } rounded-lg mb-1 cursor-pointer hover:bg-blue-200 transition-colors`}
-    //           style={{ cursor: item.meta?.readOnly ? "not-allowed" : "pointer" }}
-    //         >
-    //           {/* Checkbox Column */}
-    //           <td className="px-4 py-2 w-[50px] pl-8">
-    //             {isFolder ? (
-    //               <input
-    //                 type="checkbox"
-    //                 className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-    //                 checked={isSelected}
-    //                 ref={(el) => {
-    //                   if (el) {
-    //                     el.indeterminate = isPartiallySelected;
-    //                   }
-    //                 }}
-    //                 disabled={insideRestricted || meta.readOnly}
-    //                 onChange={() => {
-    //                   if (insideRestricted || meta.readOnly) return;
-    //                   handleFolderSelect(item);
-    //                 }}
-    //               />
-    //             ) : (
-    //               <input
-    //                 type="checkbox"
-    //                 className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-    //                 checked={isSelected}
-    //                 disabled={insideRestricted || meta.readOnly}
-    //                 onChange={() => {
-    //                   if (insideRestricted || meta.readOnly) return;
-    //                   handleSelectItem(fullPath);
-    //                 }}
-    //               />
-    //             )}
-    //           </td>
-
-    //           {/* Name Column */}
-    //           <td className="px-4 py-2" style={{ paddingLeft: `${level * 16 + 8}px` }}>
-    //             <div className="flex items-center">
-    //               {isFolder ? (
-    //                 <>
-    //                   <button
-    //                     className="p-1 rounded hover:bg-gray-100 mr-1 transition-colors disabled:opacity-50"
-    //                     onClick={() => toggleFolder(fullPath, meta.readOnly)}
-    //                     disabled={meta.readOnly}
-    //                   >
-    //                     {expandedFolders[fullPath] ? (
-    //                       <FolderOpenIcon color="#1976d2" className="w-5 h-5" />
-    //                     ) : (
-    //                       <FolderClosedIcon color="#757575" className="w-5 h-5" />
-    //                     )}
-    //                   </button>
-    //                   <span
-    //                     className={`ml-1 text-sm font-medium ${
-    //                       meta.readOnly ? "text-gray-400" : "text-gray-700"
-    //                     } cursor-pointer`}
-    //                     onClick={() => toggleFolder(fullPath, meta.readOnly)}
-    //                   >
-    //                     {item.name}
-    //                     {inheritedNewTag && (
-    //                       <span
-    //                         className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-white"
-    //                         style={{ backgroundColor: inheritedNewTag.tagColour, height: 18, fontSize: "0.7rem" }}
-    //                       >
-    //                         {inheritedNewTag.tagName}
-    //                       </span>
-    //                     )}
-    //                     {meta.readOnly && (
-    //                       <span className="ml-1 text-xs text-red-600">
-    //                         (Locked)
-    //                       </span>
-    //                     )}
-    //                   </span>
-    //                 </>
-    //               ) : (
-    //                 <>
-    //                   <div className="mr-1">{getFileIcon(item.name)}</div>
-    //                   <div className="flex flex-col">
-    //                     <span
-    //                       className={`text-sm ${
-    //                         meta.readOnly ? "text-gray-400" : "text-blue-600"
-    //                       } ${meta.readOnly ? "" : "underline"} cursor-pointer`}
-    //                       onClick={handleSafeFileClick}
-    //                       style={{ cursor: meta.readOnly ? "not-allowed" : "pointer" }}
-    //                     >
-    //                       {item.name}
-    //                       {meta.newTags?.map((tag, index) => (
-    //                         <span
-    //                           key={index}
-    //                           className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-white"
-    //                           style={{ backgroundColor: tag.tagColour, height: 18, fontSize: "0.7rem" }}
-    //                         >
-    //                           {tag.tagName}
-    //                         </span>
-    //                       ))}
-    //                     </span>
-    //                   </div>
-    //                 </>
-    //               )}
-    //             </div>
-    //           </td>
-              
-    //           {/* Status Column */}
-    //           <td className="px-4 py-2">
-    //             <div className="mt-1">{getStatusChip(meta, isFolder)}</div>
-    //           </td>
-
-    //           {/* Uploaded Date Column */}
-    //           <td className="px-4 py-2">
-    //             <UploadedInfo meta={meta} />
-    //           </td>
-
-    //           {/* Uploaded By Column */}
-    //           <td className="px-4 py-2">
-    //             <span className="text-xs font-bold">{meta.uploadedBy}</span>
-    //           </td>
-
-    //           {/* Actions Column */}
-    //           <td className="px-4 py-2 text-right">
-    //             {!hideMenu && (
-    //               <button
-    //                 className="p-1 rounded hover:bg-gray-100 transition-colors"
-    //                 onClick={(e) => handleMenuOpen(e, { ...item, fullPath })}
-    //               >
-    //                 <EllipsisVertical className="w-5 h-5 text-gray-500" />
-    //               </button>
-    //             )}
-    //           </td>
-    //         </tr>
-
-    //         {/* Render children if folder is expanded */}
-    //         {isFolder &&
-    //           expandedFolders[fullPath] &&
-    //           item.children &&
-    //           item.children.length > 0 &&
-    //           renderTableRows(
-    //             item.children,
-    //             level + 1,
-    //             fullPath,
-    //             insideRestricted
-    //           )}
-    //       </React.Fragment>
-    //     );
-    //   });
-    // };
-return (
-  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-6">
-    <div className="max-w-7xl mx-auto space-y-6">
-      
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-xl border border-white/30 rounded-3xl shadow-xl p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
-              Document Management
-            </h1>
-            <p className="text-slate-500 mt-1 text-sm">
-              Manage folders, files, approvals, signatures and invoices
-            </p>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <button
-              className="group h-12 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2"
-              onClick={() => {
-                setNewFolderDrawerOpen(true);
-                handleMenuClose();
-              }}
-            >
-              <FolderIcon className="w-5 h-5 group-hover:rotate-3 transition-transform" />
-              <span>Create Folder</span>
-            </button>
-
-            <button
-              className="group h-12 px-4 rounded-2xl bg-white border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2"
-              onClick={() => setFileUploadDrawerOpen(true)}
-            >
-              <UploadFileIcon className="w-5 h-5 text-blue-600" />
-              <span>Upload File</span>
-            </button>
-
-            <button
-              className="group h-12 px-4 rounded-2xl bg-white border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2"
-              onClick={() => setFolderUploaDrawerOpen(true)}
-            >
-              <DriveFolderUploadIcon className="w-5 h-5 text-blue-600" />
-              <span>Upload Folder</span>
-            </button>
-
-            <button
-              className="group h-12 px-4 rounded-2xl bg-gradient-to-r from-red-500 to-red-600 text-white font-medium shadow-lg shadow-red-500/20 hover:shadow-red-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2"
-              onClick={handleTrashClick}
-            >
-              <DeleteIcon className="w-5 h-5" />
-              <span>Trash</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Bulk Operations */}
-      {selectedItems.size > 0 && (
-        <div className="bg-white/80 backdrop-blur-xl border border-blue-100 rounded-3xl shadow-lg p-5">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-2xl bg-blue-100 flex items-center justify-center">
-                <CheckCircle2 className="w-6 h-6 text-blue-600" />
-              </div>
-
-              <div>
-                <p className="font-semibold text-slate-800">
-                  {selectedItems.size} item(s) selected
-                </p>
-                <p className="text-sm text-slate-500">
-                  Perform bulk actions on selected documents
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <button
-                className="h-11 px-5 rounded-2xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all flex items-center gap-2 shadow-md"
-                onClick={() => setBulkMoveDrawerOpen(true)}
-                disabled={bulkOperationLoading}
-              >
-                <DriveFileMoveIcon className="w-4 h-4" />
-                Move
-              </button>
-
-              <button
-                className="h-11 px-5 rounded-2xl bg-red-600 text-white font-medium hover:bg-red-700 transition-all flex items-center gap-2 shadow-md"
-                onClick={handleBulkTrash}
-                disabled={bulkOperationLoading}
-              >
-                <DeleteIcon className="w-4 h-4" />
-                Delete
-              </button>
-
-              <button
-                className="h-11 px-5 rounded-2xl bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-all flex items-center gap-2 shadow-md"
-                onClick={handleBulkDownload}
-                disabled={bulkOperationLoading}
-              >
-                <DownloadIcon className="w-4 h-4" />
-                Download
-              </button>
-
-              <button
-                className="h-11 px-5 rounded-2xl border border-slate-200 bg-white text-slate-700 font-medium hover:bg-slate-50 transition-all"
-                onClick={() => setSelectedItems(new Set())}
-                disabled={bulkOperationLoading}
-              >
-                Clear
-              </button>
-            </div>
-          </div>
-        </div>
+        </>
       )}
+    </Popover>
+  )}
+</td>
+            </tr>
 
-      {/* Folder Explorer */}
-      <div className="bg-white/80 backdrop-blur-xl border border-white/30 rounded-3xl shadow-2xl overflow-hidden">
-        
-        {/* Explorer Header */}
-        <div className="px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <FolderOpenIcon className="w-6 h-6 text-blue-600" />
-                Folder Explorer
-              </h2>
+            {/* CHILDREN */}
+            {isFolder &&
+              expandedFolders[fullPath] &&
+              item.children &&
+              item.children.length > 0 &&
+              renderTableRows(
+                item.children,
+                level + 1,
+                fullPath,
+                insideRestricted,
+              )}
+          </React.Fragment>
+        );
+      });
+    };
+   
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="bg-white/80 backdrop-blur-xl border border-white/30 rounded-3xl shadow-xl p-6">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
+                  Document Management
+                </h1>
+                <p className="text-slate-500 mt-1 text-sm">
+                  Manage folders, files, approvals, signatures and invoices
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <button
+                  className="group h-12 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2"
+                  onClick={() => {
+                    setNewFolderDrawerOpen(true);
+                    handleMenuClose();
+                  }}
+                >
+                  <FolderIcon className="w-5 h-5 group-hover:rotate-3 transition-transform" />
+                  <span>Create Folder</span>
+                </button>
+
+                <button
+                  className="group h-12 px-4 rounded-2xl bg-white border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2"
+                  onClick={() => setFileUploadDrawerOpen(true)}
+                >
+                  <UploadFileIcon className="w-5 h-5 text-blue-600" />
+                  <span>Upload File</span>
+                </button>
+
+                <button
+                  className="group h-12 px-4 rounded-2xl bg-white border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2"
+                  onClick={() => setFolderUploaDrawerOpen(true)}
+                >
+                  <DriveFolderUploadIcon className="w-5 h-5 text-blue-600" />
+                  <span>Upload Folder</span>
+                </button>
+
+                <button
+                  className="group h-12 px-4 rounded-2xl bg-gradient-to-r from-red-500 to-red-600 text-white font-medium shadow-lg shadow-red-500/20 hover:shadow-red-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2"
+                  onClick={handleTrashClick}
+                >
+                  <DeleteIcon className="w-5 h-5" />
+                  <span>Trash</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Bulk Operations */}
+          {selectedItems.size > 0 && (
+            <div className="bg-white/80 backdrop-blur-xl border border-blue-100 rounded-3xl shadow-lg p-5">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 rounded-2xl bg-blue-100 flex items-center justify-center">
+                    <CheckCircle2 className="w-6 h-6 text-blue-600" />
+                  </div>
+
+                  <div>
+                    <p className="font-semibold text-slate-800">
+                      {selectedItems.size} item(s) selected
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      Perform bulk actions on selected documents
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    className="h-11 px-5 rounded-2xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all flex items-center gap-2 shadow-md"
+                    onClick={() => setBulkMoveDrawerOpen(true)}
+                    disabled={bulkOperationLoading}
+                  >
+                    <DriveFileMoveIcon className="w-4 h-4" />
+                    Move
+                  </button>
+
+                  <button
+                    className="h-11 px-5 rounded-2xl bg-red-600 text-white font-medium hover:bg-red-700 transition-all flex items-center gap-2 shadow-md"
+                    onClick={handleBulkTrash}
+                    disabled={bulkOperationLoading}
+                  >
+                    <DeleteIcon className="w-4 h-4" />
+                    Delete
+                  </button>
+
+                  <button
+                    className="h-11 px-5 rounded-2xl bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-all flex items-center gap-2 shadow-md"
+                    onClick={handleBulkDownload}
+                    disabled={bulkOperationLoading}
+                  >
+                    <DownloadIcon className="w-4 h-4" />
+                    Download
+                  </button>
+
+                  <button
+                    className="h-11 px-5 rounded-2xl border border-slate-200 bg-white text-slate-700 font-medium hover:bg-slate-50 transition-all"
+                    onClick={() => setSelectedItems(new Set())}
+                    disabled={bulkOperationLoading}
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Folder Explorer */}
+          <div className="bg-white/80 backdrop-blur-xl border border-white/30 rounded-3xl shadow-2xl overflow-hidden">
+            {/* Explorer Header */}
+            <div className="px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <FolderOpenIcon className="w-6 h-6 text-blue-600" />
+                    Folder Explorer
+                  </h2>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Browse and manage your documents
+                  </p>
+                </div>
+
+                <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                  <span className="text-sm font-medium text-slate-600">
+                    Synced
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {folderTree && folderTree.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full border-separate border-spacing-0">
+                  {/* Table Head */}
+                  <thead className="sticky top-0 z-10 bg-white/90 backdrop-blur-md">
+                    <tr>
+                      <th className="w-[60px] px-5 py-4 text-left">
+                        <input
+                          type="checkbox"
+                          checked={selectAll}
+                          onChange={handleSelectAll}
+                          className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </th>
+
+                      <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Name
+                      </th>
+
+                      <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Status
+                      </th>
+
+                      <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Uploaded
+                      </th>
+
+                      <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Uploaded By
+                      </th>
+
+                      <th className="px-5 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+
+                  {/* Table Body */}
+                  <tbody className="divide-y divide-slate-100">
+                    {renderTableRows(folderTree)}
+                  </tbody>
+                </table>
+              </div>
+            ) : ( <div className="py-20 flex flex-col items-center justify-center text-center">
+                <div className="h-24 w-24 rounded-full bg-slate-100 flex items-center justify-center mb-5">
+                  <FolderOpenIcon className="w-12 h-12 text-slate-400" />
+                </div>
+
+                <h3 className="text-lg font-semibold text-slate-700">
+                  Loading folder data...
+                </h3>
+
+                <p className="text-slate-500 mt-1">
+                  Please wait while documents are being fetched
+                </p>
+              </div>
+            )}
+  
+          </div>
+    
+        </div>
+
+        {/* ================= DOCUMENT APPROVAL DIALOG ================= */}
+        {openViewer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+            <div className="w-full max-w-5xl bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50">
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 rounded-2xl bg-yellow-100 flex items-center justify-center">
+                    <Info className="w-5 h-5 text-yellow-600" />
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-800 text-lg truncate max-w-md">
+                      {selectedDoc?.filename || "Document"}
+                    </h3>
+
+                    <p className="text-sm text-slate-500">
+                      Review and approve document
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleCloseViewer}
+                  className="h-11 w-11 rounded-2xl hover:bg-slate-100 flex items-center justify-center transition-all"
+                >
+                  <X className="w-5 h-5 text-slate-600" />
+                </button>
+              </div>
+
+              <div className="h-[75vh] bg-slate-100">
+                {selectedDoc ? (
+                  <iframe
+                    src={selectedDoc.fileUrl}
+                    title={selectedDoc.filename}
+                    className="w-full h-full"
+                  />
+                ) : (
+                  <div className="h-full flex items-center justify-center text-slate-500">
+                    No document selected
+                  </div>
+                )}
+              </div>
+
+              {selectedDoc && (
+                <div className="flex justify-end gap-3 p-5 border-t border-slate-200 bg-white">
+                  <button
+                    className="h-12 px-6 rounded-2xl border border-red-200 text-red-600 hover:bg-red-50 font-medium transition-all"
+                    onClick={handleCancelClick}
+                  >
+                    Disapprove
+                  </button>
+
+                  <button
+                    className="h-12 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-lg transition-all"
+                    onClick={() =>
+                      handleApprovalAction(selectedDoc._id, "approve")
+                    }
+                  >
+                    Approve Document
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ================= CANCEL DIALOG ================= */}
+        <dialog
+          open={cancelDialogOpen}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4"
+          style={{ display: cancelDialogOpen ? "flex" : "none" }}
+        >
+          <div className="w-full max-w-lg bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-200">
+              <h3 className="text-xl font-bold text-slate-800">
+                Cancel Approval
+              </h3>
+
               <p className="text-sm text-slate-500 mt-1">
-                Browse and manage your documents
+                Please provide a reason for rejection
               </p>
             </div>
 
-            <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-slate-200 shadow-sm">
-              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-sm font-medium text-slate-600">
-                Synced
-              </span>
-            </div>
-          </div>
-        </div>
+            <div className="p-6">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Description
+              </label>
 
-        {folderTree && folderTree.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full border-separate border-spacing-0">
-              
-              {/* Table Head */}
-              <thead className="sticky top-0 z-10 bg-white/90 backdrop-blur-md">
-                <tr>
-                  <th className="w-[60px] px-5 py-4 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectAll}
-                      onChange={handleSelectAll}
-                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                    />
-                  </th>
-
-                  <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Name
-                  </th>
-
-                  <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Status
-                  </th>
-
-                  <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Uploaded
-                  </th>
-
-                  <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Uploaded By
-                  </th>
-
-                  <th className="px-5 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-
-              {/* Table Body */}
-              <tbody className="divide-y divide-slate-100">
-                {renderTableRows(folderTree)}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="py-20 flex flex-col items-center justify-center text-center">
-            <div className="h-24 w-24 rounded-full bg-slate-100 flex items-center justify-center mb-5">
-              <FolderOpenIcon className="w-12 h-12 text-slate-400" />
-            </div>
-
-            <h3 className="text-lg font-semibold text-slate-700">
-              Loading folder data...
-            </h3>
-
-            <p className="text-slate-500 mt-1">
-              Please wait while documents are being fetched
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
-
-    {/* ================= DOCUMENT APPROVAL DIALOG ================= */}
-    {openViewer && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
-        <div className="w-full max-w-5xl bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
-          
-          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50">
-            <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-2xl bg-yellow-100 flex items-center justify-center">
-                <Info className="w-5 h-5 text-yellow-600" />
-              </div>
-
-              <div>
-                <h3 className="font-bold text-slate-800 text-lg truncate max-w-md">
-                  {selectedDoc?.filename || "Document"}
-                </h3>
-
-                <p className="text-sm text-slate-500">
-                  Review and approve document
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={handleCloseViewer}
-              className="h-11 w-11 rounded-2xl hover:bg-slate-100 flex items-center justify-center transition-all"
-            >
-              <X className="w-5 h-5 text-slate-600" />
-            </button>
-          </div>
-
-          <div className="h-[75vh] bg-slate-100">
-            {selectedDoc ? (
-              <iframe
-                src={selectedDoc.fileUrl}
-                title={selectedDoc.filename}
-                className="w-full h-full"
+              <textarea
+                className="w-full min-h-[120px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all resize-none"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Enter rejection reason..."
               />
-            ) : (
-              <div className="h-full flex items-center justify-center text-slate-500">
-                No document selected
-              </div>
-            )}
-          </div>
+            </div>
 
-          {selectedDoc && (
-            <div className="flex justify-end gap-3 p-5 border-t border-slate-200 bg-white">
+            <div className="flex justify-end gap-3 px-6 py-5 border-t border-slate-200 bg-slate-50">
               <button
-                className="h-12 px-6 rounded-2xl border border-red-200 text-red-600 hover:bg-red-50 font-medium transition-all"
-                onClick={handleCancelClick}
+                className="h-11 px-5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-medium transition-all"
+                onClick={() => setCancelDialogOpen(false)}
               >
-                Disapprove
+                Close
               </button>
 
               <button
-                className="h-12 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-lg transition-all"
-                onClick={() =>
-                  handleApprovalAction(selectedDoc._id, "approve")
-                }
+                className="h-11 px-5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-medium transition-all disabled:opacity-50"
+                disabled={!cancelReason.trim()}
+                onClick={confirmCancel}
               >
-                Approve Document
+                Submit
               </button>
             </div>
-          )}
-        </div>
-      </div>
-    )}
+          </div>
+        </dialog>
 
-    {/* ================= CANCEL DIALOG ================= */}
-    <dialog
-      open={cancelDialogOpen}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4"
-      style={{ display: cancelDialogOpen ? "flex" : "none" }}
-    >
-      <div className="w-full max-w-lg bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
-        
-        <div className="px-6 py-5 border-b border-slate-200">
-          <h3 className="text-xl font-bold text-slate-800">
-            Cancel Approval
-          </h3>
+        {/* ================= SIGNATURE DIALOG ================= */}
+        {/* ================= SIGNATURE DIALOG ================= */}
+        {dialogOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+            <div className="w-full max-w-6xl bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50">
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-800">
+                    Digital Signature
+                  </h3>
 
-          <p className="text-sm text-slate-500 mt-1">
-            Please provide a reason for rejection
-          </p>
-        </div>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Complete your signature process securely
+                  </p>
+                </div>
 
-        <div className="p-6">
-          <label className="block text-sm font-semibold text-slate-700 mb-2">
-            Description
-          </label>
+                <button
+                  onClick={handleCloseDialog}
+                  className="h-11 w-11 rounded-2xl hover:bg-slate-100 flex items-center justify-center transition-all"
+                >
+                  <X className="w-5 h-5 text-slate-600" />
+                </button>
+              </div>
 
-          <textarea
-            className="w-full min-h-[120px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all resize-none"
-            value={cancelReason}
-            onChange={(e) => setCancelReason(e.target.value)}
-            placeholder="Enter rejection reason..."
-          />
-        </div>
+              {/* Content */}
+              <div className="h-[82vh] overflow-hidden bg-slate-100">
+                {selectedSlug && (
+                  <div className="w-full h-full bg-white">
+                    <DocusealForm
+                      src={`https://docuseal.com/s/${selectedSlug}`}
+                      email={targetEmail}
+                      onComplete={async (data) => {
+                        console.log("Post-sign data:", data);
 
-        <div className="flex justify-end gap-3 px-6 py-5 border-t border-slate-200 bg-slate-50">
-          <button
-            className="h-11 px-5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-medium transition-all"
-            onClick={() => setCancelDialogOpen(false)}
-          >
-            Close
-          </button>
+                        try {
+                          const updateSubmitterRes = await fetch(
+                            `${SIGNATURE_API}/signautrelist/update-submitter/${data.template.external_id}`,
+                            {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                submitterEmail: targetEmail,
+                                submissionId: data.submission_id,
+                              }),
+                            },
+                          );
 
-          <button
-            className="h-11 px-5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-medium transition-all disabled:opacity-50"
-            disabled={!cancelReason.trim()}
-            onClick={confirmCancel}
-          >
-            Submit
-          </button>
-        </div>
-      </div>
-    </dialog>
+                          const updateData = await updateSubmitterRes.json();
 
-    {/* ================= SIGNATURE DIALOG ================= */}
-   {/* ================= SIGNATURE DIALOG ================= */}
-{dialogOpen && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
-    
-    <div className="w-full max-w-6xl bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
-      
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50">
-        
-        <div>
-          <h3 className="text-2xl font-bold text-slate-800">
-            Digital Signature
-          </h3>
+                          if (updateData.success) {
+                            console.log(
+                              "✅ Document replaced with latest signature",
+                            );
 
-          <p className="text-sm text-slate-500 mt-1">
-            Complete your signature process securely
-          </p>
-        </div>
+                            if (updateData.allCompleted) {
+                              console.log(
+                                "🎉 All submitters have completed signing!",
+                              );
 
-        <button
-          onClick={handleCloseDialog}
-          className="h-11 w-11 rounded-2xl hover:bg-slate-100 flex items-center justify-center transition-all"
-        >
-          <X className="w-5 h-5 text-slate-600" />
-        </button>
-      </div>
+                              const fullPath = decodeURIComponent(
+                                updateData.esignRecord.fileUrl.split(
+                                  "/uploads/accounts/",
+                                )[1],
+                              );
 
-      {/* Content */}
-      <div className="h-[82vh] overflow-hidden bg-slate-100">
-        {selectedSlug && (
-          <div className="w-full h-full bg-white">
-            <DocusealForm
-              src={`https://docuseal.com/s/${selectedSlug}`}
-              email={targetEmail}
-              onComplete={async (data) => {
-                console.log("Post-sign data:", data);
+                              console.log("Full file path:", fullPath);
 
-                try {
-                  const updateSubmitterRes = await fetch(
-                    `${SIGNATURE_API}/signautrelist/update-submitter/${data.template.external_id}`,
-                    {
-                      method: "PATCH",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        submitterEmail: targetEmail,
-                        submissionId: data.submission_id,
-                      }),
-                    }
-                  );
+                              await updateStatus(
+                                { path: fullPath },
+                                "signStatus",
+                                "signatureCompleted",
+                              );
 
-                  const updateData = await updateSubmitterRes.json();
+                              await fetch(`${SIGNATURE_API}/notify-admin`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  clientName: targetEmail,
+                                  documentName: selectedSlug,
+                                  message: "All parties have completed signing",
+                                  accountId: accountId,
+                                }),
+                              });
 
-                  if (updateData.success) {
-                    console.log("✅ Document replaced with latest signature");
+                              alert(
+                                "All signatures completed! Document has been fully executed.",
+                              );
+                            } else {
+                              console.log(
+                                `✅ You have signed. Waiting for ${updateData.pendingCount} more signer(s).`,
+                              );
 
-                    if (updateData.allCompleted) {
-                      console.log(
-                        "🎉 All submitters have completed signing!"
-                      );
+                              alert(
+                                `Thank you for signing! Waiting for ${updateData.pendingCount} more signer(s) to complete.`,
+                              );
+                            }
+                          } else {
+                            alert("Error updating signature status.");
+                          }
+                        } catch (err) {
+                          console.error(
+                            "Error handling post-sign actions",
+                            err,
+                          );
 
-                      const fullPath = decodeURIComponent(
-                        updateData.esignRecord.fileUrl.split(
-                          "/uploads/accounts/"
-                        )[1]
-                      );
+                          alert("Error while updating sign status.");
+                        }
 
-                      console.log("Full file path:", fullPath);
-
-                      await updateStatus(
-                        { path: fullPath },
-                        "signStatus",
-                        "signatureCompleted"
-                      );
-
-                      await fetch(`${SIGNATURE_API}/notify-admin`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          clientName: targetEmail,
-                          documentName: selectedSlug,
-                          message:
-                            "All parties have completed signing",
-                          accountId: accountId,
-                        }),
-                      });
-
-                      alert(
-                        "All signatures completed! Document has been fully executed."
-                      );
-                    } else {
-                      console.log(
-                        `✅ You have signed. Waiting for ${updateData.pendingCount} more signer(s).`
-                      );
-
-                      alert(
-                        `Thank you for signing! Waiting for ${updateData.pendingCount} more signer(s) to complete.`
-                      );
-                    }
-                  } else {
-                    alert("Error updating signature status.");
-                  }
-                } catch (err) {
-                  console.error(
-                    "Error handling post-sign actions",
-                    err
-                  );
-
-                  alert("Error while updating sign status.");
-                }
-
-                handleCloseDialog();
-              }}
-            />
+                        handleCloseDialog();
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
-      </div>
-    </div>
-  </div>
-)}
 
-  {/* ================= INVOICE DIALOG ================= */}
-{invoiceDialogOpen && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
-    
-    <div className="w-full max-w-2xl bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
-      
-      {/* Header */}
-      <div className="px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50">
-        <div className="flex items-center justify-between">
-          
-          <div>
-            <h3 className="text-xl font-bold text-slate-800">
-              Invoice Details
-            </h3>
+        {/* ================= INVOICE DIALOG ================= */}
+        {invoiceDialogOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+            <div className="w-full max-w-2xl bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
+              {/* Header */}
+              <div className="px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800">
+                      Invoice Details
+                    </h3>
 
-            <p className="text-sm text-slate-500 mt-1">
-              Review associated invoice information
-            </p>
-          </div>
+                    <p className="text-sm text-slate-500 mt-1">
+                      Review associated invoice information
+                    </p>
+                  </div>
 
-          <button
-            onClick={() => setInvoiceDialogOpen(false)}
-            className="h-11 w-11 rounded-2xl hover:bg-slate-100 flex items-center justify-center transition-all"
-          >
-            <X className="w-5 h-5 text-slate-600" />
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-6">
-        {selectedInvoiceFile?.meta?.invoices?.length ? (
-          <div className="overflow-hidden rounded-2xl border border-slate-200">
-            <table className="w-full">
-              
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase text-slate-500">
-                    Invoice #
-                  </th>
-
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase text-slate-500">
-                    Description
-                  </th>
-
-                  <th className="px-4 py-3 text-right text-xs font-bold uppercase text-slate-500">
-                    Amount
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y divide-slate-100">
-                {selectedInvoiceFile.meta.invoices.map((invoice) => (
-                  <tr
-                    key={invoice._id}
-                    className="hover:bg-slate-50 transition-colors"
+                  <button
+                    onClick={() => setInvoiceDialogOpen(false)}
+                    className="h-11 w-11 rounded-2xl hover:bg-slate-100 flex items-center justify-center transition-all"
                   >
-                    <td className="px-4 py-4 text-sm font-semibold text-slate-700">
-                      {invoice.invoicenumber}
-                    </td>
+                    <X className="w-5 h-5 text-slate-600" />
+                  </button>
+                </div>
+              </div>
 
-                    <td className="px-4 py-4 text-sm text-slate-600">
-                      {invoice.description || "No description"}
-                    </td>
+              {/* Content */}
+              <div className="p-6">
+                {selectedInvoiceFile?.meta?.invoices?.length ? (
+                  <div className="overflow-hidden rounded-2xl border border-slate-200">
+                    <table className="w-full">
+                      <thead className="bg-slate-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-bold uppercase text-slate-500">
+                            Invoice #
+                          </th>
 
-                    <td className="px-4 py-4 text-sm font-bold text-right text-slate-800">
-                      ${invoice.summary?.total?.toFixed(2) || "0.00"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+                          <th className="px-4 py-3 text-left text-xs font-bold uppercase text-slate-500">
+                            Description
+                          </th>
 
-            </table>
-          </div>
-        ) : (
-          <div className="py-14 text-center">
-            <p className="text-slate-500">
-              No invoices available for this file.
-            </p>
+                          <th className="px-4 py-3 text-right text-xs font-bold uppercase text-slate-500">
+                            Amount
+                          </th>
+                        </tr>
+                      </thead>
+
+                      <tbody className="divide-y divide-slate-100">
+                        {selectedInvoiceFile.meta.invoices.map((invoice) => (
+                          <tr
+                            key={invoice._id}
+                            className="hover:bg-slate-50 transition-colors"
+                          >
+                            <td className="px-4 py-4 text-sm font-semibold text-slate-700">
+                              {invoice.invoicenumber}
+                            </td>
+
+                            <td className="px-4 py-4 text-sm text-slate-600">
+                              {invoice.description || "No description"}
+                            </td>
+
+                            <td className="px-4 py-4 text-sm font-bold text-right text-slate-800">
+                              ${invoice.summary?.total?.toFixed(2) || "0.00"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="py-14 text-center">
+                    <p className="text-slate-500">
+                      No invoices available for this file.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-end gap-3 px-6 py-5 border-t border-slate-200 bg-slate-50">
+                <button
+                  className="h-11 px-5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-medium transition-all"
+                  onClick={() => setInvoiceDialogOpen(false)}
+                >
+                  Close
+                </button>
+
+                {selectedInvoiceFile?.meta?.invoices?.length > 0 && (
+                  <button
+                    className="h-11 px-5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all shadow-lg"
+                    onClick={handlePayInvoice}
+                  >
+                    Pay Invoice
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         )}
+        {/* Drawers - These remain the same */}
+        <FileUploadDrawer
+          isOpen={fileUploadDrawerOpen}
+          onClose={() => setFileUploadDrawerOpen(false)}
+          folderTree={folderTree}
+          fetchFolderTree={() => fetchFolderTree(accountId)}
+          selectedFolderForMenu={selectedFolderForMenu}
+        />
+
+        <CreteFolderDrawer
+          isOpen={newFolderDrawerOpen}
+          onClose={() => {
+            setNewFolderDrawerOpen(false);
+          }}
+          accountId={accountId}
+          folderTree={folderTree}
+          fetchFolderTree={() => fetchFolderTree(accountId)}
+          selectedFolderForMenu={selectedFolderForMenu}
+        />
+
+        <FolderUploadDrawer
+          isOpen={folderUploaDrawerOpen}
+          onClose={() => setFolderUploaDrawerOpen(false)}
+          folderTree={folderTree}
+          fetchFolderTree={() => fetchFolderTree(accountId)}
+          selectedFolderForMenu={selectedFolderForMenu}
+        />
+
+        <MoveDrawer
+          isOpen={moveDrawerOpen}
+          onClose={() => {
+            setMoveDrawerOpen(false);
+          }}
+          folderTree={folderTree}
+          fetchFolderTree={() => fetchFolderTree(accountId)}
+          selectedFolderForMenu={selectedFolderForMenu}
+        />
+
+        <RenameDrawer
+          isOpen={renameDrawer}
+          onClose={() => {
+            SetRenameDrawer(false);
+          }}
+          folderTree={folderTree}
+          fetchFolderTree={() => fetchFolderTree(accountId)}
+          selectedFolderForMenu={selectedFolderForMenu}
+        />
+
+        <MoveDrawer
+          isOpen={bulkMoveDrawerOpen}
+          onClose={() => setBulkMoveDrawerOpen(false)}
+          folderTree={folderTree}
+          fetchFolderTree={fetchFolderTree}
+          isBulkOperation={true}
+          selectedPaths={Array.from(selectedItems)}
+          onMoveComplete={(targetPath) => {
+            console.log("Bulk move completed to:", targetPath);
+            setSelectedItems(new Set());
+          }}
+        />
       </div>
-
-      {/* Footer */}
-      <div className="flex justify-end gap-3 px-6 py-5 border-t border-slate-200 bg-slate-50">
-        
-        <button
-          className="h-11 px-5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-medium transition-all"
-          onClick={() => setInvoiceDialogOpen(false)}
-        >
-          Close
-        </button>
-
-        {selectedInvoiceFile?.meta?.invoices?.length > 0 && (
-          <button
-            className="h-11 px-5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all shadow-lg"
-            onClick={handlePayInvoice}
-          >
-            Pay Invoice
-          </button>
-        )}
-      </div>
-    </div>
-  </div>
-)}
-       {/* Drawers - These remain the same */}
-          <FileUploadDrawer
-            isOpen={fileUploadDrawerOpen}
-            onClose={() => setFileUploadDrawerOpen(false)}
-            folderTree={folderTree}
-            fetchFolderTree={() => fetchFolderTree(accountId)}
-            selectedFolderForMenu={selectedFolderForMenu}
-          />
-
-          <CreteFolderDrawer
-            isOpen={newFolderDrawerOpen}
-            onClose={() => {
-              setNewFolderDrawerOpen(false);
-            }}
-            accountId={accountId}
-            folderTree={folderTree}
-            fetchFolderTree={() => fetchFolderTree(accountId)}
-            selectedFolderForMenu={selectedFolderForMenu}
-          />
-
-          <FolderUploadDrawer
-            isOpen={folderUploaDrawerOpen}
-            onClose={() => setFolderUploaDrawerOpen(false)}
-            folderTree={folderTree}
-            fetchFolderTree={() => fetchFolderTree(accountId)}
-            selectedFolderForMenu={selectedFolderForMenu}
-          />
-
-          <MoveDrawer
-            isOpen={moveDrawerOpen}
-            onClose={() => {
-              setMoveDrawerOpen(false);
-            }}
-            folderTree={folderTree}
-            fetchFolderTree={() => fetchFolderTree(accountId)}
-            selectedFolderForMenu={selectedFolderForMenu}
-          />
-
-          <RenameDrawer
-            isOpen={renameDrawer}
-            onClose={() => {
-              SetRenameDrawer(false);
-            }}
-            folderTree={folderTree}
-            fetchFolderTree={() => fetchFolderTree(accountId)}
-            selectedFolderForMenu={selectedFolderForMenu}
-          />
-
-          <MoveDrawer
-            isOpen={bulkMoveDrawerOpen}
-            onClose={() => setBulkMoveDrawerOpen(false)}
-            folderTree={folderTree}
-            fetchFolderTree={fetchFolderTree}
-            isBulkOperation={true}
-            selectedPaths={Array.from(selectedItems)}
-            onMoveComplete={(targetPath) => {
-              console.log("Bulk move completed to:", targetPath);
-              setSelectedItems(new Set());
-            }}
-          />
-  </div>
-);
-    // return (
-    //   <div className="p-6">
-    //     <div className="p-6 max-w-[1000px] mx-auto">
-    //       {/* Action Buttons */}
-    //       <div className="flex flex-col sm:flex-row gap-2 max-w-[600px] w-full mx-auto my-6">
-    //         <button
-    //           className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-200 shadow-sm flex items-center justify-center gap-2"
-    //           onClick={() => {
-    //             setNewFolderDrawerOpen(true);
-    //             handleMenuClose();
-    //           }}
-    //         >
-    //           <FolderIcon className="w-5 h-5" />
-    //           Create Folder
-    //         </button>
-
-    //         <button
-    //           className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-200 shadow-sm flex items-center justify-center gap-2"
-    //           onClick={() => setFileUploadDrawerOpen(true)}
-    //         >
-    //           <UploadFileIcon className="w-5 h-5" />
-    //           Upload File
-    //         </button>
-
-    //         <button
-    //           className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-200 shadow-sm flex items-center justify-center gap-2"
-    //           onClick={() => setFolderUploaDrawerOpen(true)}
-    //         >
-    //           <DriveFolderUploadIcon className="w-5 h-5" />
-    //           Upload Folder
-    //         </button>
-
-    //         <button
-    //           className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-200 shadow-sm flex items-center justify-center gap-2"
-    //           onClick={handleTrashClick}
-    //         >
-    //           <DeleteIcon className="w-5 h-5" />
-    //           View Trash
-    //         </button>
-    //       </div>
-
-    //       {/* Bulk Operations Panel */}
-    //       {selectedItems.size > 0 && (
-    //         <div className="p-4 mb-6 bg-blue-50 shadow-md rounded-lg flex items-center justify-between flex-wrap gap-2">
-    //           <span className="font-semibold text-gray-700">
-    //             {selectedItems.size} item(s) selected
-    //           </span>
-    //           <div className="flex gap-2 flex-wrap">
-    //             <button
-    //               className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-1"
-    //               onClick={() => setBulkMoveDrawerOpen(true)}
-    //               disabled={bulkOperationLoading}
-    //             >
-    //               <DriveFileMoveIcon className="w-4 h-4" />
-    //               Move
-    //             </button>
-    //             <button
-    //               className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-1"
-    //               onClick={handleBulkTrash}
-    //               disabled={bulkOperationLoading}
-    //             >
-    //               <DeleteIcon className="w-4 h-4" />
-    //               Delete
-    //             </button>
-    //             <button
-    //               className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-1"
-    //               onClick={handleBulkDownload}
-    //               disabled={bulkOperationLoading}
-    //             >
-    //               <DownloadIcon className="w-4 h-4" />
-    //               Download
-    //             </button>
-    //             <button
-    //               className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
-    //               onClick={() => setSelectedItems(new Set())}
-    //               disabled={bulkOperationLoading}
-    //             >
-    //               Clear Selection
-    //             </button>
-    //           </div>
-    //         </div>
-    //       )}
-
-          // {/* Drawers - These remain the same */}
-          // <FileUploadDrawer
-          //   isOpen={fileUploadDrawerOpen}
-          //   onClose={() => setFileUploadDrawerOpen(false)}
-          //   folderTree={folderTree}
-          //   fetchFolderTree={() => fetchFolderTree(accountId)}
-          //   selectedFolderForMenu={selectedFolderForMenu}
-          // />
-
-          // <CreteFolderDrawer
-          //   isOpen={newFolderDrawerOpen}
-          //   onClose={() => {
-          //     setNewFolderDrawerOpen(false);
-          //   }}
-          //   accountId={accountId}
-          //   folderTree={folderTree}
-          //   fetchFolderTree={() => fetchFolderTree(accountId)}
-          //   selectedFolderForMenu={selectedFolderForMenu}
-          // />
-
-          // <FolderUploadDrawer
-          //   isOpen={folderUploaDrawerOpen}
-          //   onClose={() => setFolderUploaDrawerOpen(false)}
-          //   folderTree={folderTree}
-          //   fetchFolderTree={() => fetchFolderTree(accountId)}
-          //   selectedFolderForMenu={selectedFolderForMenu}
-          // />
-
-          // <MoveDrawer
-          //   isOpen={moveDrawerOpen}
-          //   onClose={() => {
-          //     setMoveDrawerOpen(false);
-          //   }}
-          //   folderTree={folderTree}
-          //   fetchFolderTree={() => fetchFolderTree(accountId)}
-          //   selectedFolderForMenu={selectedFolderForMenu}
-          // />
-
-          // <RenameDrawer
-          //   isOpen={renameDrawer}
-          //   onClose={() => {
-          //     SetRenameDrawer(false);
-          //   }}
-          //   folderTree={folderTree}
-          //   fetchFolderTree={() => fetchFolderTree(accountId)}
-          //   selectedFolderForMenu={selectedFolderForMenu}
-          // />
-
-          // <MoveDrawer
-          //   isOpen={bulkMoveDrawerOpen}
-          //   onClose={() => setBulkMoveDrawerOpen(false)}
-          //   folderTree={folderTree}
-          //   fetchFolderTree={fetchFolderTree}
-          //   isBulkOperation={true}
-          //   selectedPaths={Array.from(selectedItems)}
-          //   onMoveComplete={(targetPath) => {
-          //     console.log("Bulk move completed to:", targetPath);
-          //     setSelectedItems(new Set());
-          //   }}
-          // />
-    //     </div>
-
-    //     {/* Document Approval Dialog */}
-    //     {openViewer && (
-    //       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-    //         <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4">
-    //           <div className="flex items-center justify-between p-4 border-b">
-    //             <div className="flex items-center gap-2">
-    //               <Info className="w-5 h-5 text-yellow-500" />
-    //               <h3 className="font-semibold text-gray-900 truncate max-w-md">
-    //                 {selectedDoc?.filename || "Document"}
-    //               </h3>
-    //               {selectedDoc?.description && (
-    //                 <div className="relative inline-block group">
-    //                   <button className="text-gray-400 hover:text-gray-600">
-    //                     <TriangleAlert className="w-5 h-5" />
-    //                   </button>
-    //                   <div className="absolute z-10 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -mt-8 whitespace-nowrap">
-    //                     {selectedDoc.description}
-    //                   </div>
-    //                 </div>
-    //               )}
-    //             </div>
-    //             <button
-    //               onClick={handleCloseViewer}
-    //               className="text-gray-400 hover:text-gray-600"
-    //             >
-    //               <X className="w-6 h-6" />
-    //             </button>
-    //           </div>
-    //           <div className="h-[80vh] p-0 overflow-hidden">
-    //             {selectedDoc ? (
-    //               <iframe
-    //                 src={selectedDoc.fileUrl}
-    //                 title={selectedDoc.filename}
-    //                 className="w-full h-full border-0"
-    //               />
-    //             ) : (
-    //               <p className="text-gray-500 text-center py-8">
-    //                 No document selected
-    //               </p>
-    //             )}
-    //           </div>
-    //           {selectedDoc && (
-    //             <div className="flex justify-center gap-4 p-4 border-t">
-    //               <button
-    //                 className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-    //                 onClick={() =>
-    //                   handleApprovalAction(selectedDoc._id, "approve")
-    //                 }
-    //               >
-    //                 Approve
-    //               </button>
-    //               <button
-    //                 className="px-4 py-2 border border-red-600 text-red-600 rounded-md hover:bg-red-50 transition-colors"
-    //                 onClick={handleCancelClick}
-    //               >
-    //                 Disapprove
-    //               </button>
-    //             </div>
-    //           )}
-    //         </div>
-    //       </div>
-    //     )}
-
-    //     {/* Cancel Reason Dialog */}
-    //     <dialog
-    //       open={cancelDialogOpen}
-    //       className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-    //       style={{ display: cancelDialogOpen ? "flex" : "none" }}
-    //     >
-    //       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-    //         <div className="p-6">
-    //           <h3 className="text-xl font-semibold mb-4">
-    //             Cancel Document Approval
-    //           </h3>
-    //           <p className="text-gray-600 mb-2">
-    //             Please provide a reason for cancelling this document approval:
-    //           </p>
-    //           <label className="block text-sm font-medium text-gray-700 mb-1">
-    //             Description
-    //           </label>
-    //           <textarea
-    //             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-    //             rows={3}
-    //             value={cancelReason}
-    //             onChange={(e) => setCancelReason(e.target.value)}
-    //           />
-    //         </div>
-    //         <div className="flex justify-end gap-2 p-4 border-t">
-    //           <button
-    //             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-    //             onClick={() => setCancelDialogOpen(false)}
-    //           >
-    //             Close
-    //           </button>
-    //           <button
-    //             className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
-    //             disabled={!cancelReason.trim()}
-    //             onClick={confirmCancel}
-    //           >
-    //             Submit
-    //           </button>
-    //         </div>
-    //       </div>
-    //     </dialog>
-
-    //     {/* Signature Dialog */}
-    //     <dialog
-    //       open={dialogOpen}
-    //       className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-    //       style={{ display: dialogOpen ? "flex" : "none" }}
-    //     >
-    //       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4">
-    //         <div className="flex items-center justify-between p-4 border-b">
-    //           <h3 className="text-xl font-semibold">Signing Form</h3>
-    //           <button
-    //             onClick={handleCloseDialog}
-    //             className="text-gray-400 hover:text-gray-600"
-    //           >
-    //             <X className="w-6 h-6" />
-    //           </button>
-    //         </div>
-    //         <div className="p-4 h-[80vh] overflow-auto">
-    //           {selectedSlug && (
-    //             <DocusealForm
-    //               src={`https://docuseal.com/s/${selectedSlug}`}
-    //               email={targetEmail}
-    //               onComplete={async (data) => {
-    //                 console.log("Post-sign data:", data);
-    //                 try {
-    //                   const updateSubmitterRes = await fetch(
-    //                     `${SIGNATURE_API}/signautrelist/update-submitter/${data.template.external_id}`,
-    //                     {
-    //                       method: "PATCH",
-    //                       headers: { "Content-Type": "application/json" },
-    //                       body: JSON.stringify({
-    //                         submitterEmail: targetEmail,
-    //                         submissionId: data.submission_id,
-    //                       }),
-    //                     }
-    //                   );
-    //                   const updateData = await updateSubmitterRes.json();
-    //                   if (updateData.success) {
-    //                     console.log("✅ Document replaced with latest signature");
-    //                     if (updateData.allCompleted) {
-    //                       console.log("🎉 All submitters have completed signing!");
-    //                       const fullPath = decodeURIComponent(
-    //                         updateData.esignRecord.fileUrl.split(
-    //                           "/uploads/accounts/"
-    //                         )[1]
-    //                       );
-    //                       console.log("Full file path:", fullPath);
-    //                       const parentFolderPath = fullPath
-    //                         .split("/")
-    //                         .slice(0, -1)
-    //                         .join("/");
-    //                       console.log("Parent folder path:", parentFolderPath);
-    //                       await updateStatus(
-    //                         { path: fullPath },
-    //                         "signStatus",
-    //                         "signatureCompleted"
-    //                       );
-    //                       await fetch(`${SIGNATURE_API}/notify-admin`, {
-    //                         method: "POST",
-    //                         headers: { "Content-Type": "application/json" },
-    //                         body: JSON.stringify({
-    //                           clientName: targetEmail,
-    //                           documentName: selectedSlug,
-    //                           message: "All parties have completed signing",
-    //                           accountId: accountId,
-    //                         }),
-    //                       });
-    //                       alert(
-    //                         "All signatures completed! Document has been fully executed."
-    //                       );
-    //                     } else {
-    //                       console.log(
-    //                         `✅ You have signed. Document updated. Waiting for ${updateData.pendingCount} more signer(s).`
-    //                       );
-    //                       alert(
-    //                         `Thank you for signing! Document has been updated. Waiting for ${updateData.pendingCount} more signer(s) to complete.`
-    //                       );
-    //                     }
-    //                   } else {
-    //                     alert("Error updating signature status.");
-    //                   }
-    //                 } catch (err) {
-    //                   console.error("Error handling post-sign actions", err);
-    //                   alert("Error while updating sign status.");
-    //                 }
-    //                 handleCloseDialog();
-    //               }}
-    //             />
-    //           )}
-    //         </div>
-    //       </div>
-    //     </dialog>
-
-    //     {/* Invoice Details Dialog */}
-    //     <dialog
-    //       open={invoiceDialogOpen}
-    //       className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-    //       style={{ display: invoiceDialogOpen ? "flex" : "none" }}
-    //     >
-    //       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-    //         <div className="p-6">
-    //           <h3 className="text-xl font-semibold mb-4">Invoice Details</h3>
-    //           {selectedInvoiceFile?.meta?.invoices?.length ? (
-    //             <table className="min-w-full divide-y divide-gray-200">
-    //               <thead>
-    //                 <tr>
-    //                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-    //                     Invoice Number
-    //                   </th>
-    //                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-    //                     Description
-    //                   </th>
-    //                   <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-    //                     Amount
-    //                   </th>
-    //                 </tr>
-    //               </thead>
-    //               <tbody className="divide-y divide-gray-200">
-    //                 {selectedInvoiceFile.meta.invoices.map((invoice) => (
-    //                   <tr key={invoice._id}>
-    //                     <td className="px-4 py-2 text-sm">{invoice.invoicenumber}</td>
-    //                     <td className="px-4 py-2 text-sm">
-    //                       {invoice.description || "No description"}
-    //                     </td>
-    //                     <td className="px-4 py-2 text-sm text-right">
-    //                       ${invoice.summary?.total?.toFixed(2) || "0.00"}
-    //                     </td>
-    //                   </tr>
-    //                 ))}
-    //               </tbody>
-    //             </table>
-    //           ) : (
-    //             <p className="text-gray-500">No invoices available for this file.</p>
-    //           )}
-    //         </div>
-    //         <div className="flex justify-end gap-2 p-4 border-t">
-    //           <button
-    //             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-    //             onClick={() => setInvoiceDialogOpen(false)}
-    //           >
-    //             Close
-    //           </button>
-    //           {selectedInvoiceFile?.meta?.invoices?.length > 0 && (
-    //             <button
-    //               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-    //               onClick={handlePayInvoice}
-    //             >
-    //               Pay
-    //             </button>
-    //           )}
-    //         </div>
-    //       </div>
-    //     </dialog>
-
-    //     {/* Folder Explorer */}
-    //     <div className="bg-white shadow-lg rounded-lg p-4">
-    //       <h2 className="text-xl font-semibold mb-3">📜 Folder Explorer</h2>
-    //       {folderTree && folderTree.length > 0 ? (
-    //         <>
-    //           <div className="overflow-x-auto">
-    //             <table className="min-w-full">
-    //               <thead>
-    //                 <tr className="border-b border-gray-200">
-    //                   <th className="px-4 py-2 text-left w-[50px]"></th>
-    //                   <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-    //                     Name
-    //                   </th>
-    //                   <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-    //                     Status
-    //                   </th>
-    //                   <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-    //                     Uploaded
-    //                   </th>
-    //                   <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-    //                     User
-    //                   </th>
-    //                   <th className="px-4 py-2 text-right text-sm font-medium text-gray-500">
-    //                     Actions
-    //                   </th>
-    //                 </tr>
-    //               </thead>
-    //               <tbody>{renderTableRows(folderTree)}</tbody>
-    //             </table>
-    //           </div>
-    //           {selectedItems.size > 0 && (
-    //             <div className="p-4 mt-4 bg-gray-50 rounded-lg">
-    //               <p className="font-medium text-gray-700">
-    //                 {selectedItems.size} item(s) selected
-    //               </p>
-    //             </div>
-    //           )}
-    //         </>
-    //       ) : (
-    //         <p className="p-4 text-center text-gray-500">
-    //           Loading folder data...
-    //         </p>
-    //       )}
-    //     </div>
-
-    //     {/* Context Menus */}
-    //     {selectedFolderForMenu ? (
-    //       selectedFolderForMenu.isParent ? (
-    //         <ParentFolderMenu
-    //           anchorEl={menuAnchorEl}
-    //           open={Boolean(menuAnchorEl)}
-    //           onClose={handleMenuClose}
-    //           onCreateFolder={() => setNewFolderDrawerOpen(true)}
-    //         />
-    //       ) : selectedFolderForMenu.isFile ? (
-    //         <FileMenu
-    //           anchorEl={menuAnchorEl}
-    //           open={Boolean(menuAnchorEl)}
-    //           onClose={handleMenuClose}
-    //           selectedItem={selectedFolderForMenu}
-    //           onRename={() => SetRenameDrawer(true)}
-    //           onMove={() => setMoveDrawerOpen(true)}
-    //           accId={accountId}
-    //           onToggleReadStatus={toggleReadStatus}
-    //           onToggleReadOnly={toggleReadOnly}
-    //           onDelete={trashItem}
-    //           onDownload={handleDownloadFile}
-    //         />
-    //       ) : (
-    //         <FolderMenu
-    //           anchorEl={menuAnchorEl}
-    //           open={Boolean(menuAnchorEl)}
-    //           onClose={handleMenuClose}
-    //           selectedItem={selectedFolderForMenu}
-    //           onCreateFolder={() => setNewFolderDrawerOpen(true)}
-    //           onUploadFile={() => setFileUploadDrawerOpen(true)}
-    //           onUploadFolder={() => folderUploaDrawerOpen(true)}
-    //           onRename={() => SetRenameDrawer(true)}
-    //           onMove={() => setMoveDrawerOpen(true)}
-    //           onToggleReadStatus={toggleReadStatus}
-    //           onToggleReadOnly={toggleReadOnly}
-    //           onDelete={trashItem}
-    //         />
-    //       )
-    //     ) : null}
-    //   </div>
-    // );
+    );
+   
   };
 
   return (
