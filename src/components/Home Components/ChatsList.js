@@ -41,7 +41,7 @@ const ChatsList = ({ accountId }) => {
       // ✅ mark as read using API
       await chatAPI.markAllAsRead(chatId, accountId, "Admin");
 
-      navigate(`/client/updatechat/${chatId}`);
+      navigate(`/updatechat/${chatId}`);
     } catch (error) {
       console.error("Error marking message as read:", error);
     }

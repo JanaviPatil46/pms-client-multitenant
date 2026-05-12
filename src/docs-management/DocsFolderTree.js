@@ -1982,6 +1982,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import { accountsAPI, accountDocsAPI, invoiceAPI } from "../services/api";
 import { X } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import { 
   ChevronDownIcon, 
@@ -1996,6 +1997,7 @@ import {
   ArrowDownTrayIcon,
   DocumentArrowUpIcon,  // Alternative for file upload
   // FolderOpenIcon        // Alternative for folder upload
+  
 } from '@heroicons/react/24/outline';
 import { useToast } from "../hooks/useToast";
 const DocsFolderTree = () => {
