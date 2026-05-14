@@ -2616,7 +2616,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
         if (!confirmDelete) return;
 
         if (fileInfo.filePath) {
-          const deleteResponse = await docAPI.deleteItem({
+          const deleteResponse = await accountDocsAPI.deleteItem({
             targetPath: `${fileInfo.filePath}`,
           });
 
@@ -2655,7 +2655,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
       }
     } else {
       const fileInfos = uploadedFiles[key];
-
+  console.log("fileInfos to delete", fileInfos);
       if (!fileInfos || fileInfos.length === 0) return;
 
       try {
@@ -2667,8 +2667,8 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
 
         for (const fileInfo of fileInfos) {
           if (fileInfo.filePath) {
-            const deleteResponse = await docAPI.deleteItem({
-              targetPath: `${fileInfo.filePath}/${fileInfo.fileName}`,
+            const deleteResponse = await accountDocsAPI.deleteItem({
+              targetPath: `${fileInfo.filePath}`,
             });
 
             if (!deleteResponse.data.success) {
