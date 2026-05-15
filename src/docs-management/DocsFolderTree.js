@@ -2977,17 +2977,30 @@ const handleMenuAction = (action) => {
         const isFolder = item.type === "folder";
         const isSelected = selectedItems.has(fullPath);
 
-        const restrictedFolderName = "firm documents shared with client";
+        // const restrictedFolderName = "firm documents shared with client";
 
-        const isRootFolder = level === 0 && isFolder;
+        // const isRootFolder = level === 0 && isFolder;
 
-        const isFirmDocsRoot =
-          isRootFolder &&
-          item.name?.toLowerCase() === restrictedFolderName.toLowerCase();
+        // const isFirmDocsRoot =
+        //   isRootFolder &&
+        //   item.name?.toLowerCase() === restrictedFolderName.toLowerCase();
 
-        const insideRestricted = isInsideRestricted || isFirmDocsRoot;
+        // const insideRestricted = isInsideRestricted || isFirmDocsRoot;
 
-        const hideMenu = insideRestricted;
+        const restrictedFolderName = "firm docs shared with client";
+
+// Check current item
+const isRestrictedFolder =
+  isFolder &&
+  item.name?.trim().toLowerCase() ===
+    restrictedFolderName.trim().toLowerCase();
+
+// Propagate restriction to children
+const insideRestricted = isInsideRestricted || isRestrictedFolder;
+
+// Hide menu for restricted folder and everything inside it
+const hideMenu = insideRestricted;
+        // const hideMenu = insideRestricted;
 
         const isPartiallySelected = isFolder
           ? isFolderPartiallySelected(item)
@@ -3358,7 +3371,7 @@ const handleMenuAction = (action) => {
                 item.children,
                 level + 1,
                 fullPath,
-                insideRestricted,
+                 insideRestricted ,
               )}
           </React.Fragment>
         );
