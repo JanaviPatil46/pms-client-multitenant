@@ -273,7 +273,11 @@ const ChatsTasks = () => {
   const fetchChats = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await chatAPI.getChatsByAccountAndStatus(accountId, true);
+      // const res = await chatAPI.getChatsByAccountAndStatus(accountId, true);
+       const res = await chatAPI.getChatsByAccountAndStatus(
+        accountId,
+        true,"client"
+      );
       setChatList(res.data.chataccountwise || []);
     } catch (error) {
       console.error("Error fetching chats:", error);

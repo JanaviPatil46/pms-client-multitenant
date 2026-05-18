@@ -1346,10 +1346,14 @@ export const chatAPI = {
   getChatsByAccount: (accountId) =>
     chatApi.get(`/chats/chatsaccountwise/chatlistbyaccount/${accountId}`),
 
-  getChatsByAccountAndStatus: (accountId, isactive) =>
-  chatApi.get(
-    `/chats/chatsaccountwise/isactivechat/${accountId}/${isactive}`
-  ),
+  // getChatsByAccountAndStatus: (accountId, isactive) =>
+  // chatApi.get(
+  //   `/chats/chatsaccountwise/isactivechat/${accountId}/${isactive}`
+  // ),
+  getChatsByAccountAndStatus: (accountId, isactive,role) =>
+    chatApi.get(
+      `/chats/chatsaccountwise/isactivechat/${accountId}/${isactive}?role=${role}`,
+    ),
   createChat: (data) => chatApi.post("/chats/chatsaccountwise", data),
 
   createChatAdmin: (data) =>
