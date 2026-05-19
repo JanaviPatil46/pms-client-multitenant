@@ -609,7 +609,7 @@ const ResetPassword = () => {
 
         {/* Back to Login Link */}
         <div className="text-center mt-6">
-          <Link to="/client/login">
+          <Link to="/login">
             <button className="text-gray-600 hover:text-blue-600 transition-colors flex items-center justify-center space-x-2">
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Login</span>

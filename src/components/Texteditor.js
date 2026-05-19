@@ -60,9 +60,9 @@ export default function Editor({ initialContent, onChange,value }) {
   };
 
   return (
-    <Box
-      sx={{height:'250px'}}
-    >
+    // <Box
+    //   sx={{height:'250px'}}
+    // >
       <ReactQuill
         // value={editorContent}
         value={value}
@@ -72,7 +72,7 @@ export default function Editor({ initialContent, onChange,value }) {
         theme="snow"
         style={{ height: '150px' }}
       />
-    </Box>
+    // </Box>
   );
 }
 
