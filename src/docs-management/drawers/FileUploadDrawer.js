@@ -741,7 +741,7 @@ const FileUploadDrawer = ({
   const [selectedFolder, setSelectedFolder] = useState("");
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState([]);
-
+const [uploading, setUploading] = useState(false);
   useEffect(() => {
     if (isOpen && selectedFolderForMenu) {
       setSelectedFolder(selectedFolderForMenu.path);
@@ -775,30 +775,59 @@ const FileUploadDrawer = ({
 
   const handleFolderSelect = (path) => setSelectedFolder(path);
 
-  const handleUpload = async () => {
-    if (files.length === 0 || !selectedFolder) {
-      setMessage("Please select files and a folder.");
-      return;
-    }
+  // const handleUpload = async () => {
+  //   if (files.length === 0 || !selectedFolder) {
+  //     setMessage("Please select files and a folder.");
+  //     return;
+  //   }
 
-    try {
-      const accountId = sessionStorage.getItem("accountId");
-      const formData = new FormData();
-      files.forEach((file) => formData.append("files", file));
-      formData.append("accountId", accountId);
+  //   try {
+  //     const accountId = sessionStorage.getItem("accountId");
+  //     const formData = new FormData();
+  //     files.forEach((file) => formData.append("files", file));
+  //     formData.append("accountId", accountId);
 
-      const res = await accountDocsAPI.uploadFile(formData, selectedFolder);
+  //     const res = await accountDocsAPI.uploadFile(formData, selectedFolder);
 
-      setMessage(`✅ ${res.data.message || "Files uploaded successfully"}`);
-      toast.success(`✅ ${res.data.message || "Files uploaded successfully"}`);
-      setFiles([]);
-      onClose();
-      fetchFolderTree();
-    } catch (err) {
-      setMessage("❌ Error uploading files");
-    }
-  };
+  //     setMessage(`✅ ${res.data.message || "Files uploaded successfully"}`);
+  //     toast.success(`✅ ${res.data.message || "Files uploaded successfully"}`);
+  //     setFiles([]);
+  //     onClose();
+  //     fetchFolderTree();
+  //   } catch (err) {
+  //     setMessage("❌ Error uploading files");
+  //   }
+  // };
+const handleUpload = async () => {
+  if (files.length === 0 || !selectedFolder) {
+    setMessage("Please select files and a folder.");
+    return;
+  }
 
+  try {
+    setUploading(true);
+
+    const accountId = sessionStorage.getItem("accountId");
+
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+    formData.append("accountId", accountId);
+
+    const res = await accountDocsAPI.uploadFile(formData, selectedFolder);
+
+    setMessage(`✅ ${res.data.message || "Files uploaded successfully"}`);
+    toast.success(`✅ ${res.data.message || "Files uploaded successfully"}`);
+
+    setFiles([]);
+    onClose();
+    fetchFolderTree();
+  } catch (err) {
+    setMessage("❌ Error uploading files");
+    toast.error("Error uploading files");
+  } finally {
+    setUploading(false);
+  }
+};
   return (
     <>
       {isOpen && (
@@ -921,12 +950,50 @@ const FileUploadDrawer = ({
             Cancel
           </button>
 
-          <button
+          {/* <button
             onClick={handleUpload}
             className="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm hover:bg-blue-700"
           >
             Upload Files
-          </button>
+          </button> */}
+          <button
+  onClick={handleUpload}
+  disabled={uploading}
+  className={`
+    px-4 py-1.5 rounded-md text-sm text-white
+    flex items-center gap-2
+    ${
+      uploading
+        ? "bg-blue-400 cursor-not-allowed"
+        : "bg-blue-600 hover:bg-blue-700"
+    }
+  `}
+>
+  {uploading && (
+    <svg
+      className="animate-spin h-4 w-4"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      />
+    </svg>
+  )}
+
+  {uploading ? "Uploading..." : "Upload Files"}
+</button>
         </div>
       </div>
     </>

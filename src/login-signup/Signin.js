@@ -451,6 +451,8 @@ const LoginPage = () => {
 
       const accounts = result.accounts || [];
 
+      console.log("multiple accounts")
+
       // ================= SINGLE ACCOUNT =================
       if (accounts.length === 1) {
         setSelectedAccount(accounts[0]._id);
