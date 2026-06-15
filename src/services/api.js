@@ -1401,9 +1401,9 @@ export const chatAPI = {
   markMessageAsRead: (chatId, messageId) =>
     chatApi.patch(`/mark-as-read/${chatId}/${messageId}`),
 
-  markAllAsRead: (chatId, accountId, fromwhome) =>
+ markAllAsRead: (chatId, accountId, fromwhome) =>
     chatApi.patch(
-      `/chats/mark-all-read/${chatId}/accounts/${accountId}/${fromwhome}`
+      `/chats/mark-all-read/${chatId}/accounts/${accountId}/${fromwhome}`,
     ),
 
   // ================= STATUS =================

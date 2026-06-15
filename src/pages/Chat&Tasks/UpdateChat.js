@@ -52,6 +52,7 @@ const UpdateChat = () => {
     try {
       const res = await chatAPI.getChatById(_id);
       const data = res.data;
+      console.log("Chat details:", data);
       setChatSubject(data.chat.chatsubject);
       setTime(data.chat.updatedAt);
       setAccountName(data.chat.accountid.accountName);
