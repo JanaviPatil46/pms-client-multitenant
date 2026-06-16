@@ -13,6 +13,7 @@ const INVOICE_URL = process.env.REACT_APP_INVOICE;
 const JOBS_URL = process.env.REACT_APP_JOBS;
 const ACCOUNT_TASKS_URL = process.env.REACT_APP_ACCOUNT_TASKS;
 const EMAIL_SYNC = "https://www.snptaxes.com"
+const SIGNATURE_API = process.env.REACT_APP_ESIGNATURE_API;
 // ================= AXIOS INSTANCES =================
 const authUserApi = axios.create({
   baseURL: AUTH_USER_URL,
@@ -92,6 +93,12 @@ const emailSyncApi = axios.create({
     "Content-Type": "application/json",
   }
 })
+const signatureApi = axios.create({ 
+  baseURL: SIGNATURE_API,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 // ================= COMMON INTERCEPTORS =================
 // const attachInterceptors = (api) => {
 //   // REQUEST INTERCEPTOR (Attach Token)
@@ -204,6 +211,7 @@ attachInterceptors(invoiceApi);
 attachInterceptors(jobsApi);
 attachInterceptors(accountTasksApi);
 attachInterceptors(emailSyncApi);
+attachInterceptors(signatureApi);
 // ================= AUTH + USER APIs =================
 export const authAPI = {
   // OTP
@@ -1054,7 +1062,73 @@ export const folderManagementAPI = {
   deleteFolderTemplate: (id) =>
     folderManagementApi.delete(`/temp/foldertemp/delete/${id}`),
 };
+// ================= ESIGN APIs =================
 
+export const esignAPI = {
+  // Generate DocuSeal token
+  generateToken: (params) =>
+    signatureApi.get("/api/generate-token", {
+      params,
+    }),
+
+  // DocuSeal embedded token
+  getDocusealToken: (templateId) =>
+    signatureApi.get("/api/docuseal-token", {
+      params: { templateId },
+    }),
+
+  // Get signed submission file
+  getSubmissionFile: (submissionId) =>
+    signatureApi.get("/api/get-submission-file", {
+      params: { submissionId },
+    }),
+
+  // Get DocuSeal submissions
+  getSubmissions: () =>
+    signatureApi.get("/api/submissions"),
+
+  // Notify admin
+  notifyAdmin: (data) =>
+    signatureApi.post("/notify-admin", data),
+
+  // Get signature by ID
+  getSignatureById: (id) =>
+    signatureApi.get(`/signature/byid/${id}`),
+
+  // Cancel signature request
+  cancelSignature: (id, data) =>
+    signatureApi.delete(`/signature/cancel/${id}`, {
+      data,
+    }),
+
+  // Pending signatures by account
+  getSignatureList: (accountId) =>
+    signatureApi.get(`/signautrelist/${accountId}`),
+
+  // Signature records by externalId
+  getSignatureListByExternalId: (externalId) =>
+    signatureApi.get(`/signautrelist/list/${externalId}`),
+
+  // Check completion status
+  checkCompletion: (externalId) =>
+    signatureApi.get(
+      `/signautrelist/check-completion/${externalId}`
+    ),
+
+  // Update signature status
+  updateSignature: (externalId, data) =>
+    signatureApi.patch(
+      `/signautrelist/update/${externalId}`,
+      data
+    ),
+
+  // Update submitter status
+  updateSubmitterStatus: (externalId, data) =>
+    signatureApi.patch(
+      `/signautrelist/update-submitter/${externalId}`,
+      data
+    ),
+};
 // ================= DOC MANAGEMENT APIs =================
 export const docAPI = {
   // ================= FOLDER =================

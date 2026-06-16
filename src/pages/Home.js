@@ -157,7 +157,7 @@ const Home = () => {
                   <ChatsList accountId={accountId} />
                   <ProposalsList accountId={accountId} />
                   <DocuSealWrapper accountId={accountId} />
-                  <DocuSealMultiSigner accountId={accountId} />
+                  {/* <DocuSealMultiSigner accountId={accountId} /> */}
                   <PendingApprovals
                     accountId={accountId}
                     adminUserId={adminUserId}

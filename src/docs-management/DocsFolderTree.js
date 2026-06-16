@@ -37,7 +37,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import DownloadIcon from "@mui/icons-material/Download";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
-import { accountsAPI, accountDocsAPI, invoiceAPI } from "../services/api";
+import { accountsAPI, accountDocsAPI, invoiceAPI ,esignAPI} from "../services/api";
 import { X } from "lucide-react";
 import { CheckCircle2 } from "lucide-react";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
@@ -565,77 +565,150 @@ const DocsFolderTree = () => {
           return;
         }
         if (meta.esignRequestId && meta.signStatus === "pendingSignature") {
-          try {
-            const response = await fetch(
-              `https://www.snptaxes.com/signature/byid/${meta.esignRequestId}`,
-              {
-                method: "GET",
-                redirect: "follow",
-              },
-            );
-            const result = await response.json();
-            console.log("Signature details:", result);
-            const submission = result;
-            console.log("Full Submission:", submission);
-            if (
-              !submission.submitters ||
-              !Array.isArray(submission.submitters)
-            ) {
-              console.error("No submitters array found in response");
-              alert("Error loading signature request: Invalid data structure");
-              return;
-            }
-            const matchingSubmitters = submission.submitters
-              .map((s) => ({
-                slug: s.slug,
-                email: s.email,
-                submissionId: s.submission_id,
-                templateName: s.name,
-                createdAt: submission.createdAt,
-                fileUrl: submission.fileUrl,
-                externalId: submission.externalId,
-                submissionData: submission,
-                status: s.status,
-                completed_at: s.completed_at,
-                role: s.role,
-                allCompleted: submission.submitters.every(
-                  (submitter) =>
-                    submitter.status === "completed" ||
-                    submitter.completed_at !== null,
-                ),
-              }))
-              .filter((s) => s.email === targetEmail && !s.completed_at);
-            console.log("Matching Submitters:", matchingSubmitters);
-            if (matchingSubmitters.length > 0) {
-              const firstSlug = matchingSubmitters[0].slug;
-              console.log("Opening signature dialog with slug:", firstSlug);
-              openSignatureDialog(firstSlug);
-            } else {
-              const userSubmitters = submission.submitters.filter(
-                (s) => s.email === targetEmail,
-              );
-              if (userSubmitters.length > 0) {
-                const completedSubmitter = userSubmitters[0];
-                if (completedSubmitter.completed_at) {
-                  alert("You have already signed this document.");
-                  setTimeout(() => {
-                    openDocument(fullPath, fileName);
-                  }, 500);
-                } else {
-                  alert(
-                    "You are not authorized to sign this document at this time.",
-                  );
-                }
-              } else {
-                alert("You are not listed as a signer for this document.");
-              }
-            }
-          } catch (error) {
-            console.error("Error fetching signature details:", error);
-            alert("Error loading signature request.");
-          }
-          return;
+  try {
+    const response = await esignAPI.getSignatureById(meta.esignRequestId);
+
+    const result = response.data;
+    console.log("Signature details:", result);
+
+    const submission = result;
+
+    if (
+      !submission.submitters ||
+      !Array.isArray(submission.submitters)
+    ) {
+      console.error("No submitters array found in response");
+      alert("Error loading signature request: Invalid data structure");
+      return;
+    }
+
+    const matchingSubmitters = submission.submitters
+      .map((s) => ({
+        slug: s.slug,
+        email: s.email,
+        submissionId: s.submission_id,
+        templateName: s.name,
+        createdAt: submission.createdAt,
+        fileUrl: submission.fileUrl,
+        externalId: submission.externalId,
+        submissionData: submission,
+        status: s.status,
+        completed_at: s.completed_at,
+        role: s.role,
+        allCompleted: submission.submitters.every(
+          (submitter) =>
+            submitter.status === "completed" ||
+            submitter.completed_at !== null
+        ),
+      }))
+      .filter((s) => s.email === targetEmail && !s.completed_at);
+
+    console.log("Matching Submitters:", matchingSubmitters);
+
+    if (matchingSubmitters.length > 0) {
+      const firstSlug = matchingSubmitters[0].slug;
+      console.log("Opening signature dialog with slug:", firstSlug);
+      openSignatureDialog(firstSlug);
+    } else {
+      const userSubmitters = submission.submitters.filter(
+        (s) => s.email === targetEmail
+      );
+
+      if (userSubmitters.length > 0) {
+        const completedSubmitter = userSubmitters[0];
+
+        if (completedSubmitter.completed_at) {
+          alert("You have already signed this document.");
+
+          setTimeout(() => {
+            openDocument(fullPath, fileName);
+          }, 500);
+        } else {
+          alert("You are not authorized to sign this document at this time.");
         }
+      } else {
+        alert("You are not listed as a signer for this document.");
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching signature details:", error);
+    alert("Error loading signature request.");
+  }
+
+  return;
+}
+        // if (meta.esignRequestId && meta.signStatus === "pendingSignature") {
+        //   try {
+        //     const response = await fetch(
+        //       `https://www.snptaxes.com/signature/byid/${meta.esignRequestId}`,
+        //       {
+        //         method: "GET",
+        //         redirect: "follow",
+        //       },
+        //     );
+        //     const result = await response.json();
+        //     console.log("Signature details:", result);
+        //     const submission = result;
+        //     console.log("Full Submission:", submission);
+        //     if (
+        //       !submission.submitters ||
+        //       !Array.isArray(submission.submitters)
+        //     ) {
+        //       console.error("No submitters array found in response");
+        //       alert("Error loading signature request: Invalid data structure");
+        //       return;
+        //     }
+        //     const matchingSubmitters = submission.submitters
+        //       .map((s) => ({
+        //         slug: s.slug,
+        //         email: s.email,
+        //         submissionId: s.submission_id,
+        //         templateName: s.name,
+        //         createdAt: submission.createdAt,
+        //         fileUrl: submission.fileUrl,
+        //         externalId: submission.externalId,
+        //         submissionData: submission,
+        //         status: s.status,
+        //         completed_at: s.completed_at,
+        //         role: s.role,
+        //         allCompleted: submission.submitters.every(
+        //           (submitter) =>
+        //             submitter.status === "completed" ||
+        //             submitter.completed_at !== null,
+        //         ),
+        //       }))
+        //       .filter((s) => s.email === targetEmail && !s.completed_at);
+        //     console.log("Matching Submitters:", matchingSubmitters);
+        //     if (matchingSubmitters.length > 0) {
+        //       const firstSlug = matchingSubmitters[0].slug;
+        //       console.log("Opening signature dialog with slug:", firstSlug);
+        //       openSignatureDialog(firstSlug);
+        //     } else {
+        //       const userSubmitters = submission.submitters.filter(
+        //         (s) => s.email === targetEmail,
+        //       );
+        //       if (userSubmitters.length > 0) {
+        //         const completedSubmitter = userSubmitters[0];
+        //         if (completedSubmitter.completed_at) {
+        //           alert("You have already signed this document.");
+        //           setTimeout(() => {
+        //             openDocument(fullPath, fileName);
+        //           }, 500);
+        //         } else {
+        //           alert(
+        //             "You are not authorized to sign this document at this time.",
+        //           );
+        //         }
+        //       } else {
+        //         alert("You are not listed as a signer for this document.");
+        //       }
+        //     }
+        //   } catch (error) {
+        //     console.error("Error fetching signature details:", error);
+        //     alert("Error loading signature request.");
+        //   }
+        //   return;
+        // }
         if (meta.readOnly) {
           alert("This file is locked and cannot be opened.");
           return;
@@ -1906,85 +1979,147 @@ const DocsFolderTree = () => {
                     <DocusealForm
                       src={`https://docuseal.com/s/${selectedSlug}`}
                       email={targetEmail}
+                      // onComplete={async (data) => {
+                      //   console.log("Post-sign data:", data);
+
+                      //   try {
+                      //     const updateSubmitterRes = await fetch(
+                      //       `${SIGNATURE_API}/signautrelist/update-submitter/${data.template.external_id}`,
+                      //       {
+                      //         method: "PATCH",
+                      //         headers: { "Content-Type": "application/json" },
+                      //         body: JSON.stringify({
+                      //           submitterEmail: targetEmail,
+                      //           submissionId: data.submission_id,
+                      //         }),
+                      //       },
+                      //     );
+
+                      //     const updateData = await updateSubmitterRes.json();
+
+                      //     if (updateData.success) {
+                      //       console.log(
+                      //         "✅ Document replaced with latest signature",
+                      //       );
+
+                      //       if (updateData.allCompleted) {
+                      //         console.log(
+                      //           "🎉 All submitters have completed signing!",
+                      //         );
+
+                      //         const fullPath = decodeURIComponent(
+                      //           updateData.esignRecord.fileUrl.split(
+                      //             "/uploads/accounts/",
+                      //           )[1],
+                      //         );
+
+                      //         console.log("Full file path:", fullPath);
+
+                      //         await updateStatus(
+                      //           { path: fullPath },
+                      //           "signStatus",
+                      //           "signatureCompleted",
+                      //         );
+
+                      //         await fetch(`${SIGNATURE_API}/notify-admin`, {
+                      //           method: "POST",
+                      //           headers: { "Content-Type": "application/json" },
+                      //           body: JSON.stringify({
+                      //             clientName: targetEmail,
+                      //             documentName: selectedSlug,
+                      //             message: "All parties have completed signing",
+                      //             accountId: accountId,
+                      //           }),
+                      //         });
+
+                      //         alert(
+                      //           "All signatures completed! Document has been fully executed.",
+                      //         );
+                      //       } else {
+                      //         console.log(
+                      //           `✅ You have signed. Waiting for ${updateData.pendingCount} more signer(s).`,
+                      //         );
+
+                      //         alert(
+                      //           `Thank you for signing! Waiting for ${updateData.pendingCount} more signer(s) to complete.`,
+                      //         );
+                      //       }
+                      //     } else {
+                      //       alert("Error updating signature status.");
+                      //     }
+                      //   } catch (err) {
+                      //     console.error(
+                      //       "Error handling post-sign actions",
+                      //       err,
+                      //     );
+
+                      //     alert("Error while updating sign status.");
+                      //   }
+
+                      //   handleCloseDialog();
+                      // }}
                       onComplete={async (data) => {
-                        console.log("Post-sign data:", data);
+  console.log("Post-sign data:", data);
 
-                        try {
-                          const updateSubmitterRes = await fetch(
-                            `${SIGNATURE_API}/signautrelist/update-submitter/${data.template.external_id}`,
-                            {
-                              method: "PATCH",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({
-                                submitterEmail: targetEmail,
-                                submissionId: data.submission_id,
-                              }),
-                            },
-                          );
+  try {
+    // ✅ 1. Update submitter status (API.js)
+    const updateSubmitterRes = await esignAPI.updateSubmitterStatus(
+      data.template.external_id,
+      {
+        submitterEmail: targetEmail,
+        submissionId: data.submission_id,
+      }
+    );
 
-                          const updateData = await updateSubmitterRes.json();
+    const updateData = updateSubmitterRes.data;
 
-                          if (updateData.success) {
-                            console.log(
-                              "✅ Document replaced with latest signature",
-                            );
+    if (updateData.success) {
+      console.log("✅ Document replaced with latest signature");
 
-                            if (updateData.allCompleted) {
-                              console.log(
-                                "🎉 All submitters have completed signing!",
-                              );
+      if (updateData.allCompleted) {
+        console.log("🎉 All submitters have completed signing!");
 
-                              const fullPath = decodeURIComponent(
-                                updateData.esignRecord.fileUrl.split(
-                                  "/uploads/accounts/",
-                                )[1],
-                              );
+        const fullPath = decodeURIComponent(
+          updateData.esignRecord.fileUrl.split("/uploads/accounts/")[1]
+        );
 
-                              console.log("Full file path:", fullPath);
+        console.log("Full file path:", fullPath);
 
-                              await updateStatus(
-                                { path: fullPath },
-                                "signStatus",
-                                "signatureCompleted",
-                              );
+        // ✅ 2. Update status via API.js
+        await updateStatus(
+          { path: fullPath },
+          "signStatus",
+          "signatureCompleted"
+        );
 
-                              await fetch(`${SIGNATURE_API}/notify-admin`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  clientName: targetEmail,
-                                  documentName: selectedSlug,
-                                  message: "All parties have completed signing",
-                                  accountId: accountId,
-                                }),
-                              });
+        // ✅ 3. Notify admin via API.js
+        await esignAPI.notifyAdmin({
+          clientName: targetEmail,
+          documentName: selectedSlug,
+          message: "All parties have completed signing",
+          accountId: accountId,
+        });
 
-                              alert(
-                                "All signatures completed! Document has been fully executed.",
-                              );
-                            } else {
-                              console.log(
-                                `✅ You have signed. Waiting for ${updateData.pendingCount} more signer(s).`,
-                              );
+        alert("All signatures completed! Document has been fully executed.");
+      } else {
+        console.log(
+          `✅ You have signed. Waiting for ${updateData.pendingCount} more signer(s).`
+        );
 
-                              alert(
-                                `Thank you for signing! Waiting for ${updateData.pendingCount} more signer(s) to complete.`,
-                              );
-                            }
-                          } else {
-                            alert("Error updating signature status.");
-                          }
-                        } catch (err) {
-                          console.error(
-                            "Error handling post-sign actions",
-                            err,
-                          );
+        alert(
+          `Thank you for signing! Waiting for ${updateData.pendingCount} more signer(s) to complete.`
+        );
+      }
+    } else {
+      alert("Error updating signature status.");
+    }
+  } catch (err) {
+    console.error("Error handling post-sign actions", err);
+    alert("Error while updating sign status.");
+  }
 
-                          alert("Error while updating sign status.");
-                        }
-
-                        handleCloseDialog();
-                      }}
+  handleCloseDialog();
+}}
                     />
                   </div>
                 )}

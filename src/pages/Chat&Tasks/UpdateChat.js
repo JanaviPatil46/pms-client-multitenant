@@ -662,7 +662,8 @@ return (
 
           {/* Message */}
           <div
-            className="text-sm prose prose-sm max-w-none"
+            // className="text-sm prose prose-sm max-w-none"
+             className="text-sm leading-relaxed break-words whitespace-pre-wrap"
             dangerouslySetInnerHTML={{
               __html:
                 typeof desc.message ===

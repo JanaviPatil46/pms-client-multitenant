@@ -1,47 +1,40 @@
-import React, { useEffect, useState ,useContext} from "react";
-import DocuSealMultiSigner from "./DocuSealMultiSigner"; // adjust the path
-import { LoginContext } from "../../context/Context";
+import React, { useEffect, useState } from "react";
+import DocuSealMultiSigner from "./DocuSealMultiSigner";
+import { esignAPI } from "../../services/api";
+
 const DocuSealWrapper = () => {
-  const [data, setData] = useState(null); // response from backend
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
- const [targetEmail,setTargetEmail]= useState(sessionStorage.getItem("email"))
- const[accountId,setAccountId]= useState(sessionStorage.getItem("accountId"))
 
-
-     
+  const targetEmail = sessionStorage.getItem("email");
+  const accountId = sessionStorage.getItem("accountId");
 
   useEffect(() => {
     const fetchSignatureList = async () => {
       try {
-        const response = await fetch(
-          `https://snptaxes.com/signautrelist/${accountId}`,
-          { method: "GET", redirect: "follow" }
-        );
+        const res = await esignAPI.getSignatureList(accountId);
 
-        const result = await response.json(); // use .json() if backend returns JSON
-        console.log("result signature",result);
-        setData(result);
-
+        setData(res.data || []);
       } catch (error) {
         console.error("Error fetching signature list:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchSignatureList();
-  }, []); // empty array → runs only once on mount
+    if (accountId) fetchSignatureList();
+  }, [accountId]);
 
-
-
-  if (loading) return <p></p>;
-  if (!data || !Array.isArray(data)) return <p></p>;
+  if (loading) return null;
+  if (!Array.isArray(data)) return null;
 
   return (
     <DocuSealMultiSigner
       submissions={data}
       targetEmail={targetEmail}
+      accountId={accountId}
     />
   );
 };
 
 export default DocuSealWrapper;
-
