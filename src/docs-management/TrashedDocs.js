@@ -586,7 +586,7 @@ const TrashedDocs = () => {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState("");
     const [itemToDelete, setItemToDelete] = useState(null);
-
+  const [accountName, setAccountName] = useState("");
     useEffect(() => {
       fetchFolderTree(accountId);
     }, [accountId]);
@@ -606,7 +606,19 @@ const TrashedDocs = () => {
         setError("Error fetching folder tree");
       }
     };
+ const fetchAccountDetails = async () => {
+      try {
+        const res = await accountsAPI.getAccountById(accountId);
+        setAccountName(res.data.accountName);
+        // setAdminUserId(res.data.adminUserId.emailSyncEmail);
+      } catch (error) {
+        console.error("Error fetching account details:", error);
+      }
+    };
 
+    useEffect(() => {
+      fetchAccountDetails();
+    }, [accountId]);
     const toggleFolder = (path) => {
       setExpandedFolders((prev) => ({
         ...prev,
@@ -633,6 +645,8 @@ const TrashedDocs = () => {
       try {
         const res = await accountDocsAPI.restoreItem({
           targetPath: item.path,
+          accountId: accountId,
+          accountName: accountName,
         });
         const data = res.data;
         if (res.status === 200 && data.success) {
@@ -677,6 +691,8 @@ const TrashedDocs = () => {
       try {
         const res = await accountDocsAPI.deleteItem({
           targetPath: item.path,
+          accountId: accountId,
+          accountName: accountName,
         });
         const data = res.data;
         if (res.status === 200 && data.success) {

@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams,useNavigate } from "react-router-dom";
 // import { toast } from "material-react-toastify";
 import Editor from "../../components/Texteditor";
 import { accountsAPI, chatAPI } from "../../services/api";
-import { Send, MoreVertical, X, Square, CheckSquare, Loader2 } from "lucide-react";
+import { Send, MoreVertical, X, Square, CheckSquare, Loader2, Backpack } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
-import { Check, CheckCheck } from "lucide-react";
+import { Check, CheckCheck ,MoveLeft} from "lucide-react";
+
 const UpdateChat = () => {
   const [accId] = useState(sessionStorage.getItem("accountId"));
   const toast = useToast()
@@ -305,6 +306,10 @@ chatDescriptions.forEach((msg) => {
     data: msg,
   });
 });
+const navigate=useNavigate();
+const handleBack = () => {
+  navigate(-1); // Navigate back to the previous page
+};
 return (
   <div className="w-full max-w-[1700px] flex-1 h-[90vh] p-2 flex flex-col md:flex-row gap-4 overflow-hidden bg-background">
 
@@ -397,11 +402,19 @@ return (
     <div className="flex flex-col flex-1 min-h-0 rounded-xl border border-border bg-card shadow-sm overflow-hidden">
 
       {/* Chat header */}
-      <div className="shrink-0 px-4 py-3 border-b border-border bg-muted/30">
-        <h2 className="text-base font-semibold text-foreground truncate">
-          {chatsubject || "Chat"}
-        </h2>
-      </div>
+    <div className="shrink-0 px-4 py-3 border-b border-border bg-muted/30">
+  <h2 className="flex items-center gap-2 text-base font-semibold text-foreground truncate">
+    <button
+      type="button"
+      onClick={handleBack} // Your function here
+      className="cursor-pointer hover:text-primary transition-colors"
+    >
+      <MoveLeft size={30} />
+    </button>
+
+    {chatsubject || "Chat"}
+  </h2>
+</div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">

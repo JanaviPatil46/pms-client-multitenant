@@ -56,6 +56,11 @@ import {
   // FolderOpenIcon        // Alternative for folder upload
 } from "@heroicons/react/24/outline";
 import { useToast } from "../hooks/useToast";
+import {Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../components/ui/tooltip"
 const DocsFolderTree = () => {
   const [accountId, setAccountId] = useState(
     sessionStorage.getItem("accountId"),
@@ -177,7 +182,7 @@ const DocsFolderTree = () => {
     const fetchFolderTree = async (accountId) => {
       try {
         const res = await accountDocsAPI.clientListFoldersAndFiles(accountId);
-        console.log("response", res);
+        console.log("response list for accounts", res);
 
         if (res.status === 200 || res.status === 200) {
           const responseData = res;
@@ -293,6 +298,7 @@ const DocsFolderTree = () => {
             [statusType]: newValue,
             ...(action === "cancel" && reason ? { cancelReason: reason } : {}),
           },
+          accountId,accountName
         };
         const res = await accountDocsAPI.updateStatus(body);
         // ✅ Axios response
@@ -354,6 +360,8 @@ const DocsFolderTree = () => {
         const res = await accountDocsAPI.bulkTrashItems({
           targetPaths: paths,
           trashedBy: "Client",
+          accountId: accountId,
+          accountName: accountName,
         });
         const data = res.data;
         console.log("Bulk trash response:", data);
@@ -386,7 +394,7 @@ const DocsFolderTree = () => {
       setBulkOperationLoading(true);
       try {
         const paths = Array.from(selectedItems);
-        const res = await accountDocsAPI.downloadItems({ paths });
+        const res = await accountDocsAPI.downloadItems({ paths,accountId,accountName });
         const blob = res.data;
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -415,6 +423,8 @@ const DocsFolderTree = () => {
         const res = await accountDocsAPI.trashItem({
           targetPath: item.path,
           trashedBy: "Client",
+          accountId: accountId,
+          accountName: accountName,
         });
         const data = res.data;
         if (data.success) {
@@ -435,7 +445,7 @@ const DocsFolderTree = () => {
     const handleDownloadFile = async (item) => {
       console.log("Downloading file:", item);
       try {
-        const res = await accountDocsAPI.downloadItems({ paths: item.path });
+        const res = await accountDocsAPI.downloadItems({ paths: item.path,accountId,accountName });
         const blob = res.data;
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -713,6 +723,13 @@ const DocsFolderTree = () => {
           alert("This file is locked and cannot be opened.");
           return;
         }
+        // Create VIEW audit
+await accountDocsAPI.viewDocument({
+  filePath: fullPath,
+  accountId: accountId,
+  accountName: accountName,
+});
+
         openDocument(fullPath, fileName);
       } catch (error) {
         console.error("Error opening/downloading file:", error);
@@ -763,12 +780,14 @@ const DocsFolderTree = () => {
           description: reason,
           accountId,
           adminUserId,
+          accountName,
         });
         const res = await accountDocsAPI.updateApprovalStatus(id, {
           action,
           description: reason,
           accountId,
           adminUserId,
+          accountName,
         });
         console.log("✅ Approval response:", res.data);
         let originalPath = "";
@@ -787,6 +806,7 @@ const DocsFolderTree = () => {
           newStatus,
           action,
           cancelReason,
+          accountName,
         );
         setOpenViewer(false);
         setCancelDialogOpen(false);
@@ -1191,7 +1211,21 @@ const DocsFolderTree = () => {
         // const hideMenu = insideRestricted;
         // NEW: Allow download for files and folders inside restricted folder
         const allowDownload = isInsideFirmDocs && !isRestrictedFolder;
+const isFolderDownloadRestricted = item.type === "folder";
 
+const isFileDownloadRestricted =
+  meta.authStatus === "pendingApproval" ||
+  meta.signStatus === "pendingSignature" ||
+  meta.lockInvoiceStatus === "pendingpayment";
+
+const isDownloadRestricted =
+  isFolderDownloadRestricted || isFileDownloadRestricted;
+
+const downloadTooltip = isFolderDownloadRestricted
+  ? "You do not have access to download folders"
+  : isFileDownloadRestricted
+    ? "You do not have access to download this document"
+    : `Download ${item.type === "folder" ? "folder" : "file"}`;
         // Add download handler for restricted folder children
         const handleRestrictedDownload = async (item) => {
           if (item.type === "file") {
@@ -1593,7 +1627,7 @@ const DocsFolderTree = () => {
                   </Popover>
                 )}
  {/* NEW: Show download button for items inside Firm docs */}
-            {allowDownload && (
+            {/* {allowDownload && (
               <button
                 className="
                   h-10 w-10 rounded-xl
@@ -1612,8 +1646,85 @@ const DocsFolderTree = () => {
               >
                 <DownloadIcon className="w-5 h-5 text-emerald-600" />
               </button>
-            )}
+            )} */}
+{/* {allowDownload && (
+  <Tooltip title={downloadTooltip}>
+    <span>
+      <button
+        className={`
+          h-10 w-10 rounded-xl
+          border border-transparent
+          transition-all duration-200
+          flex items-center justify-center
+          ${
+            isDownloadRestricted
+              ? "cursor-not-allowed opacity-40"
+              : "hover:bg-white hover:shadow-md hover:border-slate-200 opacity-70 group-hover:opacity-100"
+          }
+        `}
+        disabled={isDownloadRestricted}
+        onClick={(e) => {
+          e.stopPropagation();
 
+          if (isDownloadRestricted) return;
+
+          handleRestrictedDownload(item);
+        }}
+      >
+        <DownloadIcon
+          className={`w-5 h-5 ${
+            isDownloadRestricted
+              ? "text-slate-400"
+              : "text-emerald-600"
+          }`}
+        />
+      </button>
+    </span>
+  </Tooltip>
+)} */}
+<TooltipProvider>
+  {allowDownload && (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span>
+          <button
+            className={`
+              h-10 w-10 rounded-xl
+              border border-transparent
+              transition-all duration-200
+              flex items-center justify-center
+              ${
+                isDownloadRestricted
+                  ? "cursor-not-allowed opacity-40"
+                  : "hover:bg-white hover:shadow-md hover:border-slate-200 opacity-70 group-hover:opacity-100"
+              }
+            `}
+            disabled={isDownloadRestricted}
+            onClick={(e) => {
+              e.stopPropagation();
+
+              if (isDownloadRestricted) return;
+
+              handleRestrictedDownload(item);
+            }}
+          >
+            <DownloadIcon
+              className={`w-5 h-5 ${
+                isDownloadRestricted
+                  ? "text-slate-400"
+                  : "text-emerald-600"
+              }`}
+            />
+          </button>
+        </span>
+      </TooltipTrigger>
+
+      <TooltipContent>
+        <p>{downloadTooltip}</p>
+      </TooltipContent>
+    </Tooltip>
+  )}
+</TooltipProvider>
               </td>
             </tr>
 
@@ -2087,7 +2198,7 @@ const DocsFolderTree = () => {
 
         // ✅ 2. Update status via API.js
         await updateStatus(
-          { path: fullPath },
+          { path: fullPath ,accountId: accountId, accountName: accountName},
           "signStatus",
           "signatureCompleted"
         );

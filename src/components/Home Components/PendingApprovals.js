@@ -652,6 +652,8 @@ const toast =useToast()
           [statusType]: newValue,
           ...(action === "cancel" && reason ? { cancelReason: reason } : {}),
         },
+        accountId,
+        accountName
       });
 
       if (res.status === 200) {
@@ -682,7 +684,7 @@ const toast =useToast()
         action === "approve" ? "approvalCompleted" : "canceledApproval";
 
       await updateStatus(
-        { path: originalPath },
+        { path: originalPath,accountId,accountName },
         "authStatus",
         newStatus,
         action,

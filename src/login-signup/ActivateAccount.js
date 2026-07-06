@@ -326,6 +326,7 @@ const toast=useToast();
     try {
       const { data } = await contactsAPI.verifyActivationToken(token);
       setContactInfo(data.contact);
+      console.log("token details",data)
       setError("");
     } catch (err) {
       console.error(err);

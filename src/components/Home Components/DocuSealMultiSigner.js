@@ -16,6 +16,7 @@ const DocuSealMultiSigner = ({ accountId }) => {
         const res = await esignAPI.getSignatureList(accountId);
 
         setSubmissions(res.data || []);
+        console.log("Fetched submissions:", res.data);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching signatures:", error);
@@ -42,6 +43,8 @@ const DocuSealMultiSigner = ({ accountId }) => {
     newValue,
     action,
     reason = "",
+    accountId,
+    accountName
   ) => {
     try {
       if (!item?.path) return alert("Invalid item selected");
@@ -51,6 +54,8 @@ const DocuSealMultiSigner = ({ accountId }) => {
           [statusType]: newValue,
           ...(action === "cancel" && reason ? { cancelReason: reason } : {}),
         },
+        accountId,
+        accountName
       };
       const res = await accountDocsAPI.updateStatus(body);
       // ✅ Axios response
@@ -156,54 +161,7 @@ const DocuSealMultiSigner = ({ accountId }) => {
                 <DocusealForm
                   src={`https://docuseal.com/s/${selectedSlug}`}
                   email={targetEmail}
-                  // onComplete={async (data) => {
-                  //   try {
-                  //     const updateSubmitterRes =
-                  //       await esignAPI.updateSubmitterStatus(
-                  //         data.template.external_id,
-                  //         {
-                  //           submitterEmail: targetEmail,
-                  //           submissionId: data.submission_id,
-                  //         },
-                  //       );
-
-                  //     const updateData = await updateSubmitterRes.json();
-
-                  //     if (updateData.success) {
-                  //       if (updateData.allCompleted) {
-                  //         const fullPath = decodeURIComponent(
-                  //           updateData.esignRecord.fileUrl.split(
-                  //             "/uploads/accounts/",
-                  //           )[1],
-                  //         );
-
-                  //         await updateStatus(
-                  //           { path: fullPath },
-                  //           "signStatus",
-                  //           "signatureCompleted",
-                  //         );
-
-                  //         await esignAPI.notifyAdmin({
-                  //           clientName: targetEmail,
-                  //           documentName: selectedSlug,
-                  //           message: "All parties have completed signing",
-                  //           accountId,
-                  //         });
-
-                  //         alert("All signatures completed!");
-                  //       } else {
-                  //         alert(
-                  //           `Waiting for ${updateData.pendingCount} more signer(s)`,
-                  //         );
-                  //       }
-                  //     }
-                  //   } catch (err) {
-                  //     console.error(err);
-                  //   }
-
-                  //   handleCloseDialog();
-                  //   window.location.reload();
-                  // }}
+                
               onComplete={async (data) => {
   console.log("Post-sign data:", data);
 
@@ -233,7 +191,7 @@ const DocuSealMultiSigner = ({ accountId }) => {
 
         // ✅ 2. Update status via API.js
         await updateStatus(
-          { path: fullPath },
+          { path: fullPath ,accountId: accountId, accountName: accountName},
           "signStatus",
           "signatureCompleted"
         );

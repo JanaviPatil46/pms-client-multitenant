@@ -18,7 +18,28 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   const [accountName, setAccountName] = useState("");
   const [accId] = useState(sessionStorage.getItem("accountId"));
   const toast = useToast();
+  const [organizerDetails, setOrganizerDetails] = useState(null);
 
+// useEffect(() => {
+//   const fetchOrganizerDetails = async () => {
+//     try {
+//       if (!organizer) return;
+
+//       const res = await organizerAPI.getOrganizerAccountWiseById(
+//         organizer
+//       );
+
+//       console.log("Organizer Account Wise Details:", res.data);
+
+//       setOrganizerDetails(res.data);
+//     } catch (error) {
+//       console.error("Error fetching organizer details:", error);
+//     }
+//   };
+
+//   fetchOrganizerDetails();
+// }, [organizer]);
+console.log("orgnaizer details",organizer)
   const fetchAccountDetails = async () => {
     try {
       const res = await accountsAPI.getAccountById(accId);
