@@ -21,6 +21,8 @@ import UpdateChat from "./pages/Chat&Tasks/UpdateChat";
 import PayInvoice from "./pages/Billing/PayInvoice";
 import TrashedDocs from "./docs-management/TrashedDocs";
 import DocsFolderTree from "./docs-management/DocsFolderTree";
+import Billing from "./pages/Billing/Billing";
+import Payment from "./pages/Billing/Payment";
 const App = () => {
   return (
     <Routes>
@@ -95,14 +97,20 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* <Route
           path="billing"
           element={
             <ProtectedRoute>
               <Invoice />
             </ProtectedRoute>
           }
-        />
+        /> */}
+
+        <Route path="billing" element={<Billing />}>
+    <Route index element={<Invoice/>} />
+    <Route path="invoices" element={<Invoice />} />
+    <Route path="payments" element={<Payment/>} />
+</Route>
         <Route
           path="payinvoice"
           element={

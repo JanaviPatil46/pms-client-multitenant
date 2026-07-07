@@ -1,6 +1,24 @@
 import React from 'react'
 import { useState } from 'react'
-import { useEffect } from 'react'
+import { useEffect ,useMemo} from 'react'
+import {
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import {Card} from "../../components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
+import { Badge } from "../../components/ui/badge";
+import dayjs from "dayjs";
+import { MoreVertical, Receipt, CreditCard } from "lucide-react";
+
 import { invoiceAPI, accountsAPI } from '../../services/api'
 const Payment = () => {
       const [accountId] = useState(sessionStorage.getItem("accountId"));
@@ -214,81 +232,99 @@ useEffect(() => {
     );
   }
 
-  return (
-    <div className="space-y-4">
-         
-    <Card className="rounded-xl border shadow-sm overflow-hidden">
-    
-  
-    
-  
+ return (
+  <div className="w-full h-screen bg-background text-foreground flex flex-col">
+    <div className="flex-1 overflow-auto p-4 flex flex-col gap-5">
 
-  <div className="overflow-x-auto">
-    <Table>
+      {/* Summary Cards */}
+     
+      {/* Payment Table */}
+      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
 
-      <TableHeader className="bg-gray-100">
-        {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id}>
+        <div className="overflow-auto">
 
-            {headerGroup.headers.map((header) => (
-              <TableHead
-                key={header.id}
-                className="px-4 py-3 font-semibold text-gray-700 whitespace-nowrap"
-              >
-                {header.isPlaceholder
-                  ? null
-                  : flexRender(
+          <table className="w-full text-sm">
+
+            <thead>
+              <tr className="border-b border-border bg-muted/40">
+
+                {table.getHeaderGroups()[0].headers.map((header) => (
+                  <th
+                    key={header.id}
+                    className="px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap"
+                  >
+                    {flexRender(
                       header.column.columnDef.header,
                       header.getContext()
                     )}
-              </TableHead>
-            ))}
+                  </th>
+                ))}
 
-          </TableRow>
-        ))}
-      </TableHeader>
+              </tr>
+            </thead>
 
-      <TableBody>
+            <tbody className="divide-y divide-border/60">
 
-        {table.getRowModel().rows.length ? (
-          table.getRowModel().rows.map((row) => (
-            <TableRow
-              key={row.id}
-              className="hover:bg-gray-50 transition-colors"
-            >
-              {row.getVisibleCells().map((cell) => (
-                <TableCell
-                  key={cell.id}
-                  className="px-4 py-3 text-sm"
-                >
-                  {flexRender(
-                    cell.column.columnDef.cell,
-                    cell.getContext()
-                  )}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))
-        ) : (
-          <TableRow>
-            <TableCell
-              colSpan={columns.length}
-              className="h-32 text-center text-gray-500"
-            >
-              No payments found.
-            </TableCell>
-          </TableRow>
-        )}
+              {table.getRowModel().rows.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <tr
+                    key={row.id}
+                    className="hover:bg-muted/40 transition-colors"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td
+                        key={cell.id}
+                        className="px-4 py-3 text-muted-foreground"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="py-16 text-center"
+                  >
+                    <div className="flex flex-col items-center gap-3">
 
-      </TableBody>
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                        <CreditCard
+                          size={22}
+                          className="text-muted-foreground"
+                          strokeWidth={1.5}
+                        />
+                      </div>
 
-    </Table>
-  </div>
+                      <p className="text-sm font-medium text-foreground">
+                        No payments found
+                      </p>
 
-</Card>
-  
+                      <p className="text-[13px] text-muted-foreground">
+                        Payment history will appear here once a payment is
+                        received.
+                      </p>
+
+                    </div>
+                  </td>
+                </tr>
+              )}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
     </div>
-  );
+  </div>
+);
 };
 
 export default Payment
