@@ -1,12 +1,12 @@
 import { useLocation, useNavigate } from "react-router-dom";
 
 import axios from "axios";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useToast } from "../../hooks/useToast";
 import { CreditCard, ChevronLeft } from "lucide-react";
 
 // ✅ ONLY ADDED THIS
-import { invoiceAPI } from "../../services/api";
+import { invoiceAPI,accountsAPI } from "../../services/api";
 
 const PayInvoice = () => {
   const toast =useToast()
@@ -22,7 +22,28 @@ const PayInvoice = () => {
 
   const location = useLocation();
   const { selectedInvoices = [], accountName = "" } = location.state || {};
-
+console.log("Selected Invoices:", selectedInvoices);
+const [account, setAccount] = useState(null);
+const [accountLoading, setAccountLoading] = useState(false);
+  const [accountId] = useState(sessionStorage.getItem("accountId"));
+  const fetchAccount = async () => {
+    try {
+      setAccountLoading(true);
+  
+      const res = await accountsAPI.getAccountById(accountId);
+ setAccount(res.data);
+    } catch (err) {
+      console.error("Failed to fetch account:", err);
+    } finally {
+      setAccountLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    if (accountId) {
+      fetchAccount();
+    }
+  }, [accountId]);
     const [routingNumber,setRoutingNumber]=useState("000000013")
   const [accountNumber,setAccountNumber]=useState("1100000005")
   const [selectedAccountHolderType, setSelectedAccountHolderType] =
@@ -34,12 +55,12 @@ const PayInvoice = () => {
     accountTypeOptions[0]
   );
   console.log("Selected Invoices:", selectedInvoices);
-const accountCredit = selectedInvoices[0]?.account?.creaditAval || 0;
+const accountCredit = account?.creaditAval || 0;
 
 const [applyCredit, setApplyCredit] = useState(true);
 
 const invoiceTotal = selectedInvoices.reduce(
-  (sum, invoice) => sum + invoice.summary.total,
+  (sum, invoice) => sum + invoice.balanceDueAmount,
   0
 );
 
@@ -50,6 +71,7 @@ const creditApplied = applyCredit
 const amountToPay = invoiceTotal - creditApplied;
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+
 
   const handleAccountHolderTypeChange = (_, value) => {
     setSelectedAccountHolderType(value);
@@ -96,7 +118,7 @@ const amountToPay = invoiceTotal - creditApplied;
     setErrors({});
 
     const totalAmount = selectedInvoices.reduce(
-      (sum, row) => sum + row.summary.total,
+      (sum, row) => sum + row.balanceDueAmount,
       0
     );
 
@@ -150,7 +172,7 @@ const amountToPay = invoiceTotal - creditApplied;
       // ================= ONLY CHANGED PART (INVOICE UPDATE) =================
       const updatePromises = selectedInvoices.map((invoice) => {
         const newPaidAmount =
-          (invoice.paidAmount || 0) + invoice.summary.total;
+          (invoice.paidAmount || 0) + invoice.balanceDueAmount;
 
         const date = new Date();
         const formattedDate = date.toLocaleDateString("en-GB", {
@@ -168,7 +190,8 @@ const amountToPay = invoiceTotal - creditApplied;
   balanceDueAmount: 0,
   invoiceStatus: "Paid",
   lastPaid: formattedDate,
-  paymentMethod: invoice.paymentMethod || "",
+  //paymentMethod: selectedInvoices || "",
+paymentMethod: invoice.paymentMethod || "",
   creditApplied, // <-- important
   active: "true",
         });
@@ -205,7 +228,7 @@ const amountToPay = invoiceTotal - creditApplied;
 const fieldClass = (err) =>
     `w-full rounded-lg border px-3 py-2 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 ${err ? "border-destructive" : "border-border"}`;
 
-  const totalAmount = selectedInvoices.reduce((sum, row) => sum + row.summary.total, 0);
+  const totalAmount = selectedInvoices.reduce((sum, row) => sum + row.balanceDueAmount, 0);
   return (
     
 
@@ -264,7 +287,7 @@ const fieldClass = (err) =>
                   {row.invoiceStatus}
                 </td>
                 <td className="px-4 py-3 font-semibold text-foreground">
-                  ${row.summary.total.toFixed(2)}
+                  ${row.balanceDueAmount.toFixed(2)}
                 </td>
               </tr>
             ))}

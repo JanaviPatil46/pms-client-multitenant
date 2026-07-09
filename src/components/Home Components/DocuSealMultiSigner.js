@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { DocusealForm } from "@docuseal/react";
-import { esignAPI, accountDocsAPI } from "../../services/api";
+import { esignAPI, accountDocsAPI,accountsAPI } from "../../services/api";
 const DocuSealMultiSigner = ({ accountId }) => {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +26,28 @@ const DocuSealMultiSigner = ({ accountId }) => {
 
     if (accountId) fetchSignatureList();
   }, [accountId]);
+  const [accountName, setAccountName] = useState("");
+  const [account, setAccount] = useState(null);
+  const [accountLoading, setAccountLoading] = useState(false);
+const fetchAccount = async () => {
+  try {
+    setAccountLoading(true);
 
+    const res = await accountsAPI.getAccountById(accountId);
+    setAccount(res.data);
+    setAccountName(res.data?.accountName || "");
+  } catch (err) {
+    console.error("Failed to fetch account:", err);
+  } finally {
+    setAccountLoading(false);
+  }
+};
+
+useEffect(() => {
+  if (accountId) {
+    fetchAccount();
+  }
+}, [accountId]);
   const handleOpenDialog = (slug) => {
     setSelectedSlug(slug);
     setDialogOpen(true);

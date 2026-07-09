@@ -14,7 +14,7 @@ import {
   Check,
   Link2,
 } from "lucide-react";
-import { accountsAPI } from "../services/api";
+import { accountsAPI,invoiceAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
@@ -135,31 +135,31 @@ const fetchInvoices = async () => {
 
     const res = await invoiceAPI.getInvoiceListByAccountId(accountId);
 
-    const updatedInvoices = await Promise.all(
-      (res.data?.invoice || []).map(async (invoice) => {
-        const overdue = isInvoiceOverdue(invoice);
+    // const updatedInvoices = await Promise.all(
+    //   (res.data?.invoice || []).map(async (invoice) => {
+    //     const overdue = isInvoiceOverdue(invoice);
 
-        if (overdue && invoice.invoiceStatus !== "Overdue") {
-          try {
-            await invoiceAPI.updateInvoiceStatus(invoice.invoicenumber, {
-              invoiceStatus: "Overdue",
-            });
+    //     if (overdue && invoice.invoiceStatus !== "Overdue") {
+    //       try {
+    //         await invoiceAPI.updateInvoiceStatus(invoice.invoicenumber, {
+    //           invoiceStatus: "Overdue",
+    //         });
 
-            return {
-              ...invoice,
-              invoiceStatus: "Overdue",
-            };
-          } catch (err) {
-            console.error("Failed to update invoice status:", err);
-            return invoice;
-          }
-        }
+    //         return {
+    //           ...invoice,
+    //           invoiceStatus: "Overdue",
+    //         };
+    //       } catch (err) {
+    //         console.error("Failed to update invoice status:", err);
+    //         return invoice;
+    //       }
+    //     }
 
-        return invoice;
-      })
-    );
+    //     return invoice;
+    //   })
+    // );
 
-    setAccountInvoicesData(updatedInvoices);
+    setAccountInvoicesData(res.data?.invoice);
   } catch (err) {
     console.error("Failed to fetch invoices:", err);
   } finally {
@@ -175,7 +175,7 @@ useEffect(() => {
   
   const invoiceSummary = accountInvoicesData.reduce(
     (acc, invoice) => {
-      const total = Number(invoice.summary?.total || 0);
+      const total = Number(invoice.balanceDueAmount || 0);
       const paid = Number(invoice.paidAmount || 0);
       const balance = total - paid;
 
