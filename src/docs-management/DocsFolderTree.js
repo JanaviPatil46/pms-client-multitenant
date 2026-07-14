@@ -37,7 +37,12 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import DownloadIcon from "@mui/icons-material/Download";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
-import { accountsAPI, accountDocsAPI, invoiceAPI ,esignAPI} from "../services/api";
+import {
+  accountsAPI,
+  accountDocsAPI,
+  invoiceAPI,
+  esignAPI,
+} from "../services/api";
 import { X } from "lucide-react";
 import { CheckCircle2 } from "lucide-react";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
@@ -56,11 +61,12 @@ import {
   // FolderOpenIcon        // Alternative for folder upload
 } from "@heroicons/react/24/outline";
 import { useToast } from "../hooks/useToast";
-import {Tooltip,
+import {
+  Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../components/ui/tooltip"
+} from "../components/ui/tooltip";
 const DocsFolderTree = () => {
   const [accountId, setAccountId] = useState(
     sessionStorage.getItem("accountId"),
@@ -298,7 +304,8 @@ const DocsFolderTree = () => {
             [statusType]: newValue,
             ...(action === "cancel" && reason ? { cancelReason: reason } : {}),
           },
-          accountId,accountName
+          accountId,
+          accountName,
         };
         const res = await accountDocsAPI.updateStatus(body);
         // ✅ Axios response
@@ -394,7 +401,11 @@ const DocsFolderTree = () => {
       setBulkOperationLoading(true);
       try {
         const paths = Array.from(selectedItems);
-        const res = await accountDocsAPI.downloadItems({ paths,accountId,accountName });
+        const res = await accountDocsAPI.downloadItems({
+          paths,
+          accountId,
+          accountName,
+        });
         const blob = res.data;
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -445,7 +456,11 @@ const DocsFolderTree = () => {
     const handleDownloadFile = async (item) => {
       console.log("Downloading file:", item);
       try {
-        const res = await accountDocsAPI.downloadItems({ paths: item.path,accountId,accountName });
+        const res = await accountDocsAPI.downloadItems({
+          paths: item.path,
+          accountId,
+          accountName,
+        });
         const blob = res.data;
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -481,6 +496,7 @@ const DocsFolderTree = () => {
           invoiceAPI.getInvoiceListById(id),
         );
         const results = await Promise.all(fetchPromises);
+        console.log("Fetched invoice results:", results);
         const invoices = results
           .map((res) => res.data)
           .filter((result) => result?.invoice)
@@ -508,10 +524,11 @@ const DocsFolderTree = () => {
                     label: inv.invoicetemplate.templatename,
                   }
                 : null,
-              paymentMethod: {
-                value: inv.paymentMethod,
-                label: inv.paymentMethod,
-              },
+              // paymentMethod: {
+              //   value: inv.paymentMethod,
+              //   label: inv.paymentMethod,
+              // },
+              paymentMethod: inv.paymentMethod,
               teammember: inv.teammember
                 ? { value: inv.teammember._id, label: inv.teammember.username }
                 : null,
@@ -523,6 +540,7 @@ const DocsFolderTree = () => {
               reminders: inv.reminders,
               lineItems,
               summary: inv.summary || {},
+              balanceDueAmount: inv.balanceDueAmount,
             };
           });
         return invoices;
@@ -536,6 +554,7 @@ const DocsFolderTree = () => {
 
     const handlePayInvoice = () => {
       if (!selectedInvoiceFile?.meta?.invoices?.length) return;
+      console.log("nbdshgcsdc invoie", selectedInvoiceFile?.meta?.invoices);
       navigate("/payinvoice", {
         state: {
           selectedInvoices: selectedInvoiceFile.meta.invoices,
@@ -545,7 +564,7 @@ const DocsFolderTree = () => {
     };
 
     const handleFileClick = async (fullPath, fileName, meta = {}) => {
-      console.log("file clicked", fullPath, fileName, meta);
+      // console.log("file clicked", fullPath, fileName, meta);
       try {
         if (
           meta.newTags?.some((tag) => tag.isSystemTag && tag.tagName === "New")
@@ -575,160 +594,93 @@ const DocsFolderTree = () => {
           return;
         }
         if (meta.esignRequestId && meta.signStatus === "pendingSignature") {
-  try {
-    const response = await esignAPI.getSignatureById(meta.esignRequestId);
+          try {
+            const response = await esignAPI.getSignatureById(
+              meta.esignRequestId,
+            );
 
-    const result = response.data;
-    console.log("Signature details:", result);
+            const result = response.data;
+            // console.log("Signature details:", result);
 
-    const submission = result;
+            const submission = result;
 
-    if (
-      !submission.submitters ||
-      !Array.isArray(submission.submitters)
-    ) {
-      console.error("No submitters array found in response");
-      alert("Error loading signature request: Invalid data structure");
-      return;
-    }
+            if (
+              !submission.submitters ||
+              !Array.isArray(submission.submitters)
+            ) {
+              console.error("No submitters array found in response");
+              alert("Error loading signature request: Invalid data structure");
+              return;
+            }
 
-    const matchingSubmitters = submission.submitters
-      .map((s) => ({
-        slug: s.slug,
-        email: s.email,
-        submissionId: s.submission_id,
-        templateName: s.name,
-        createdAt: submission.createdAt,
-        fileUrl: submission.fileUrl,
-        externalId: submission.externalId,
-        submissionData: submission,
-        status: s.status,
-        completed_at: s.completed_at,
-        role: s.role,
-        allCompleted: submission.submitters.every(
-          (submitter) =>
-            submitter.status === "completed" ||
-            submitter.completed_at !== null
-        ),
-      }))
-      .filter((s) => s.email === targetEmail && !s.completed_at);
+            const matchingSubmitters = submission.submitters
+              .map((s) => ({
+                slug: s.slug,
+                email: s.email,
+                submissionId: s.submission_id,
+                templateName: s.name,
+                createdAt: submission.createdAt,
+                fileUrl: submission.fileUrl,
+                externalId: submission.externalId,
+                submissionData: submission,
+                status: s.status,
+                completed_at: s.completed_at,
+                role: s.role,
+                allCompleted: submission.submitters.every(
+                  (submitter) =>
+                    submitter.status === "completed" ||
+                    submitter.completed_at !== null,
+                ),
+              }))
+              .filter((s) => s.email === targetEmail && !s.completed_at);
 
-    console.log("Matching Submitters:", matchingSubmitters);
+            console.log("Matching Submitters:", matchingSubmitters);
 
-    if (matchingSubmitters.length > 0) {
-      const firstSlug = matchingSubmitters[0].slug;
-      console.log("Opening signature dialog with slug:", firstSlug);
-      openSignatureDialog(firstSlug);
-    } else {
-      const userSubmitters = submission.submitters.filter(
-        (s) => s.email === targetEmail
-      );
+            if (matchingSubmitters.length > 0) {
+              const firstSlug = matchingSubmitters[0].slug;
+              // console.log("Opening signature dialog with slug:", firstSlug);
+              openSignatureDialog(firstSlug);
+            } else {
+              const userSubmitters = submission.submitters.filter(
+                (s) => s.email === targetEmail,
+              );
 
-      if (userSubmitters.length > 0) {
-        const completedSubmitter = userSubmitters[0];
+              if (userSubmitters.length > 0) {
+                const completedSubmitter = userSubmitters[0];
 
-        if (completedSubmitter.completed_at) {
-          alert("You have already signed this document.");
+                if (completedSubmitter.completed_at) {
+                  alert("You have already signed this document.");
 
-          setTimeout(() => {
-            openDocument(fullPath, fileName);
-          }, 500);
-        } else {
-          alert("You are not authorized to sign this document at this time.");
+                  setTimeout(() => {
+                    openDocument(fullPath, fileName);
+                  }, 500);
+                } else {
+                  alert(
+                    "You are not authorized to sign this document at this time.",
+                  );
+                }
+              } else {
+                alert("You are not listed as a signer for this document.");
+              }
+            }
+          } catch (error) {
+            console.error("Error fetching signature details:", error);
+            alert("Error loading signature request.");
+          }
+
+          return;
         }
-      } else {
-        alert("You are not listed as a signer for this document.");
-      }
-    }
-  } catch (error) {
-    console.error("Error fetching signature details:", error);
-    alert("Error loading signature request.");
-  }
 
-  return;
-}
-        // if (meta.esignRequestId && meta.signStatus === "pendingSignature") {
-        //   try {
-        //     const response = await fetch(
-        //       `https://www.snptaxes.com/signature/byid/${meta.esignRequestId}`,
-        //       {
-        //         method: "GET",
-        //         redirect: "follow",
-        //       },
-        //     );
-        //     const result = await response.json();
-        //     console.log("Signature details:", result);
-        //     const submission = result;
-        //     console.log("Full Submission:", submission);
-        //     if (
-        //       !submission.submitters ||
-        //       !Array.isArray(submission.submitters)
-        //     ) {
-        //       console.error("No submitters array found in response");
-        //       alert("Error loading signature request: Invalid data structure");
-        //       return;
-        //     }
-        //     const matchingSubmitters = submission.submitters
-        //       .map((s) => ({
-        //         slug: s.slug,
-        //         email: s.email,
-        //         submissionId: s.submission_id,
-        //         templateName: s.name,
-        //         createdAt: submission.createdAt,
-        //         fileUrl: submission.fileUrl,
-        //         externalId: submission.externalId,
-        //         submissionData: submission,
-        //         status: s.status,
-        //         completed_at: s.completed_at,
-        //         role: s.role,
-        //         allCompleted: submission.submitters.every(
-        //           (submitter) =>
-        //             submitter.status === "completed" ||
-        //             submitter.completed_at !== null,
-        //         ),
-        //       }))
-        //       .filter((s) => s.email === targetEmail && !s.completed_at);
-        //     console.log("Matching Submitters:", matchingSubmitters);
-        //     if (matchingSubmitters.length > 0) {
-        //       const firstSlug = matchingSubmitters[0].slug;
-        //       console.log("Opening signature dialog with slug:", firstSlug);
-        //       openSignatureDialog(firstSlug);
-        //     } else {
-        //       const userSubmitters = submission.submitters.filter(
-        //         (s) => s.email === targetEmail,
-        //       );
-        //       if (userSubmitters.length > 0) {
-        //         const completedSubmitter = userSubmitters[0];
-        //         if (completedSubmitter.completed_at) {
-        //           alert("You have already signed this document.");
-        //           setTimeout(() => {
-        //             openDocument(fullPath, fileName);
-        //           }, 500);
-        //         } else {
-        //           alert(
-        //             "You are not authorized to sign this document at this time.",
-        //           );
-        //         }
-        //       } else {
-        //         alert("You are not listed as a signer for this document.");
-        //       }
-        //     }
-        //   } catch (error) {
-        //     console.error("Error fetching signature details:", error);
-        //     alert("Error loading signature request.");
-        //   }
-        //   return;
-        // }
         if (meta.readOnly) {
           alert("This file is locked and cannot be opened.");
           return;
         }
         // Create VIEW audit
-await accountDocsAPI.viewDocument({
-  filePath: fullPath,
-  accountId: accountId,
-  accountName: accountName,
-});
+        await accountDocsAPI.viewDocument({
+          filePath: fullPath,
+          accountId: accountId,
+          accountName: accountName,
+        });
 
         openDocument(fullPath, fileName);
       } catch (error) {
@@ -739,7 +691,7 @@ await accountDocsAPI.viewDocument({
     const openDocument = (fullPath, fileName) => {
       try {
         const fileUrl = `${process.env.REACT_APP_FOLDER_MANAGEMENT}/uploads/accounts/${fullPath}`;
-        console.log("Opening document:", fileUrl);
+        // console.log("Opening document:", fileUrl);
         const fileExt = fileName.split(".").pop().toLowerCase();
         const viewableExtensions = ["pdf", "jpg", "jpeg", "png", "gif", "txt"];
         if (viewableExtensions.includes(fileExt)) {
@@ -762,7 +714,7 @@ await accountDocsAPI.viewDocument({
       try {
         const res = await accountDocsAPI.getApprovalById(id);
         const data = res.data;
-        console.log("Approval Data:", data);
+        // console.log("Approval Data:", data);
         setSelectedDoc(data.approval);
         setOpenViewer(true);
         return data;
@@ -774,14 +726,14 @@ await accountDocsAPI.viewDocument({
 
     const handleApprovalAction = async (id, action, reason = "") => {
       try {
-        console.log("Sending approval request:", {
-          id,
-          action,
-          description: reason,
-          accountId,
-          adminUserId,
-          accountName,
-        });
+        // console.log("Sending approval request:", {
+        //   id,
+        //   action,
+        //   description: reason,
+        //   accountId,
+        //   adminUserId,
+        //   accountName,
+        // });
         const res = await accountDocsAPI.updateApprovalStatus(id, {
           action,
           description: reason,
@@ -789,14 +741,14 @@ await accountDocsAPI.viewDocument({
           adminUserId,
           accountName,
         });
-        console.log("✅ Approval response:", res.data);
+        // console.log("✅ Approval response:", res.data);
         let originalPath = "";
         if (selectedDoc?.fileUrl) {
           const splitPath = selectedDoc.fileUrl.split("/uploads/accounts/");
           if (splitPath.length > 1) {
             originalPath = splitPath[1];
           }
-          console.log("📌 Original document path:", originalPath);
+          // console.log("📌 Original document path:", originalPath);
         }
         const newStatus =
           action === "approve" ? "approvalCompleted" : "canceledApproval";
@@ -991,7 +943,7 @@ await accountDocsAPI.viewDocument({
     };
 
     const findNewSystemTag = (item) => {
-      console.log("Finding 'New' tag in item:", item);
+      // console.log("Finding 'New' tag in item:", item);
       const newTag = item.meta?.newTags?.find(
         (tag) => tag.isSystemTag && tag.tagName === "New",
       );
@@ -1177,7 +1129,7 @@ await accountDocsAPI.viewDocument({
       });
 
       return sortedItems.map((item) => {
-        console.log("itemlist", item);
+        // console.log("itemlist", item);
 
         const fullPath = item.path;
         const meta = item.meta || {};
@@ -1211,21 +1163,21 @@ await accountDocsAPI.viewDocument({
         // const hideMenu = insideRestricted;
         // NEW: Allow download for files and folders inside restricted folder
         const allowDownload = isInsideFirmDocs && !isRestrictedFolder;
-const isFolderDownloadRestricted = item.type === "folder";
+        const isFolderDownloadRestricted = item.type === "folder";
 
-const isFileDownloadRestricted =
-  meta.authStatus === "pendingApproval" ||
-  meta.signStatus === "pendingSignature" ||
-  meta.lockInvoiceStatus === "pendingpayment";
+        const isFileDownloadRestricted =
+          meta.authStatus === "pendingApproval" ||
+          meta.signStatus === "pendingSignature" ||
+          meta.lockInvoiceStatus === "pendingpayment";
 
-const isDownloadRestricted =
-  isFolderDownloadRestricted || isFileDownloadRestricted;
+        const isDownloadRestricted =
+          isFolderDownloadRestricted || isFileDownloadRestricted;
 
-const downloadTooltip = isFolderDownloadRestricted
-  ? "You do not have access to download folders"
-  : isFileDownloadRestricted
-    ? "You do not have access to download this document"
-    : `Download ${item.type === "folder" ? "folder" : "file"}`;
+        const downloadTooltip = isFolderDownloadRestricted
+          ? "You do not have access to download folders"
+          : isFileDownloadRestricted
+            ? "You do not have access to download this document"
+            : `Download ${item.type === "folder" ? "folder" : "file"}`;
         // Add download handler for restricted folder children
         const handleRestrictedDownload = async (item) => {
           if (item.type === "file") {
@@ -1626,69 +1578,14 @@ const downloadTooltip = isFolderDownloadRestricted
                     )}
                   </Popover>
                 )}
- {/* NEW: Show download button for items inside Firm docs */}
-            {/* {allowDownload && (
-              <button
-                className="
-                  h-10 w-10 rounded-xl
-                  hover:bg-white hover:shadow-md
-                  border border-transparent
-                  hover:border-slate-200
-                  transition-all duration-200
-                  flex items-center justify-center
-                  opacity-70 group-hover:opacity-100
-                "
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRestrictedDownload(item);
-                }}
-                title={`Download ${item.type === 'folder' ? 'folder' : 'file'}`}
-              >
-                <DownloadIcon className="w-5 h-5 text-emerald-600" />
-              </button>
-            )} */}
-{/* {allowDownload && (
-  <Tooltip title={downloadTooltip}>
-    <span>
-      <button
-        className={`
-          h-10 w-10 rounded-xl
-          border border-transparent
-          transition-all duration-200
-          flex items-center justify-center
-          ${
-            isDownloadRestricted
-              ? "cursor-not-allowed opacity-40"
-              : "hover:bg-white hover:shadow-md hover:border-slate-200 opacity-70 group-hover:opacity-100"
-          }
-        `}
-        disabled={isDownloadRestricted}
-        onClick={(e) => {
-          e.stopPropagation();
 
-          if (isDownloadRestricted) return;
-
-          handleRestrictedDownload(item);
-        }}
-      >
-        <DownloadIcon
-          className={`w-5 h-5 ${
-            isDownloadRestricted
-              ? "text-slate-400"
-              : "text-emerald-600"
-          }`}
-        />
-      </button>
-    </span>
-  </Tooltip>
-)} */}
-<TooltipProvider>
-  {allowDownload && (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span>
-          <button
-            className={`
+                <TooltipProvider>
+                  {allowDownload && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <button
+                            className={`
               h-10 w-10 rounded-xl
               border border-transparent
               transition-all duration-200
@@ -1699,32 +1596,32 @@ const downloadTooltip = isFolderDownloadRestricted
                   : "hover:bg-white hover:shadow-md hover:border-slate-200 opacity-70 group-hover:opacity-100"
               }
             `}
-            disabled={isDownloadRestricted}
-            onClick={(e) => {
-              e.stopPropagation();
+                            disabled={isDownloadRestricted}
+                            onClick={(e) => {
+                              e.stopPropagation();
 
-              if (isDownloadRestricted) return;
+                              if (isDownloadRestricted) return;
 
-              handleRestrictedDownload(item);
-            }}
-          >
-            <DownloadIcon
-              className={`w-5 h-5 ${
-                isDownloadRestricted
-                  ? "text-slate-400"
-                  : "text-emerald-600"
-              }`}
-            />
-          </button>
-        </span>
-      </TooltipTrigger>
+                              handleRestrictedDownload(item);
+                            }}
+                          >
+                            <DownloadIcon
+                              className={`w-5 h-5 ${
+                                isDownloadRestricted
+                                  ? "text-slate-400"
+                                  : "text-emerald-600"
+                              }`}
+                            />
+                          </button>
+                        </span>
+                      </TooltipTrigger>
 
-      <TooltipContent>
-        <p>{downloadTooltip}</p>
-      </TooltipContent>
-    </Tooltip>
-  )}
-</TooltipProvider>
+                      <TooltipContent>
+                        <p>{downloadTooltip}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </TooltipProvider>
               </td>
             </tr>
 
@@ -2090,147 +1987,84 @@ const downloadTooltip = isFolderDownloadRestricted
                     <DocusealForm
                       src={`https://docuseal.com/s/${selectedSlug}`}
                       email={targetEmail}
-                      // onComplete={async (data) => {
-                      //   console.log("Post-sign data:", data);
-
-                      //   try {
-                      //     const updateSubmitterRes = await fetch(
-                      //       `${SIGNATURE_API}/signautrelist/update-submitter/${data.template.external_id}`,
-                      //       {
-                      //         method: "PATCH",
-                      //         headers: { "Content-Type": "application/json" },
-                      //         body: JSON.stringify({
-                      //           submitterEmail: targetEmail,
-                      //           submissionId: data.submission_id,
-                      //         }),
-                      //       },
-                      //     );
-
-                      //     const updateData = await updateSubmitterRes.json();
-
-                      //     if (updateData.success) {
-                      //       console.log(
-                      //         "✅ Document replaced with latest signature",
-                      //       );
-
-                      //       if (updateData.allCompleted) {
-                      //         console.log(
-                      //           "🎉 All submitters have completed signing!",
-                      //         );
-
-                      //         const fullPath = decodeURIComponent(
-                      //           updateData.esignRecord.fileUrl.split(
-                      //             "/uploads/accounts/",
-                      //           )[1],
-                      //         );
-
-                      //         console.log("Full file path:", fullPath);
-
-                      //         await updateStatus(
-                      //           { path: fullPath },
-                      //           "signStatus",
-                      //           "signatureCompleted",
-                      //         );
-
-                      //         await fetch(`${SIGNATURE_API}/notify-admin`, {
-                      //           method: "POST",
-                      //           headers: { "Content-Type": "application/json" },
-                      //           body: JSON.stringify({
-                      //             clientName: targetEmail,
-                      //             documentName: selectedSlug,
-                      //             message: "All parties have completed signing",
-                      //             accountId: accountId,
-                      //           }),
-                      //         });
-
-                      //         alert(
-                      //           "All signatures completed! Document has been fully executed.",
-                      //         );
-                      //       } else {
-                      //         console.log(
-                      //           `✅ You have signed. Waiting for ${updateData.pendingCount} more signer(s).`,
-                      //         );
-
-                      //         alert(
-                      //           `Thank you for signing! Waiting for ${updateData.pendingCount} more signer(s) to complete.`,
-                      //         );
-                      //       }
-                      //     } else {
-                      //       alert("Error updating signature status.");
-                      //     }
-                      //   } catch (err) {
-                      //     console.error(
-                      //       "Error handling post-sign actions",
-                      //       err,
-                      //     );
-
-                      //     alert("Error while updating sign status.");
-                      //   }
-
-                      //   handleCloseDialog();
-                      // }}
                       onComplete={async (data) => {
-  console.log("Post-sign data:", data);
+                        console.log("Post-sign data:", data);
 
-  try {
-    // ✅ 1. Update submitter status (API.js)
-    const updateSubmitterRes = await esignAPI.updateSubmitterStatus(
-      data.template.external_id,
-      {
-        submitterEmail: targetEmail,
-        submissionId: data.submission_id,
-      }
-    );
+                        try {
+                          // ✅ 1. Update submitter status (API.js)
+                          const updateSubmitterRes =
+                            await esignAPI.updateSubmitterStatus(
+                              data.template.external_id,
+                              {
+                                submitterEmail: targetEmail,
+                                submissionId: data.submission_id,
+                              },
+                            );
 
-    const updateData = updateSubmitterRes.data;
+                          const updateData = updateSubmitterRes.data;
 
-    if (updateData.success) {
-      console.log("✅ Document replaced with latest signature");
+                          if (updateData.success) {
+                            console.log(
+                              "✅ Document replaced with latest signature",
+                            );
 
-      if (updateData.allCompleted) {
-        console.log("🎉 All submitters have completed signing!");
+                            if (updateData.allCompleted) {
+                              console.log(
+                                "🎉 All submitters have completed signing!",
+                              );
 
-        const fullPath = decodeURIComponent(
-          updateData.esignRecord.fileUrl.split("/uploads/accounts/")[1]
-        );
+                              const fullPath = decodeURIComponent(
+                                updateData.esignRecord.fileUrl.split(
+                                  "/uploads/accounts/",
+                                )[1],
+                              );
 
-        console.log("Full file path:", fullPath);
+                              console.log("Full file path:", fullPath);
 
-        // ✅ 2. Update status via API.js
-        await updateStatus(
-          { path: fullPath ,accountId: accountId, accountName: accountName},
-          "signStatus",
-          "signatureCompleted"
-        );
+                              // ✅ 2. Update status via API.js
+                              await updateStatus(
+                                {
+                                  path: fullPath,
+                                  accountId: accountId,
+                                  accountName: accountName,
+                                },
+                                "signStatus",
+                                "signatureCompleted",
+                              );
 
-        // ✅ 3. Notify admin via API.js
-        await esignAPI.notifyAdmin({
-          clientName: targetEmail,
-          documentName: selectedSlug,
-          message: "All parties have completed signing",
-          accountId: accountId,
-        });
+                              // ✅ 3. Notify admin via API.js
+                              await esignAPI.notifyAdmin({
+                                clientName: targetEmail,
+                                documentName: selectedSlug,
+                                message: "All parties have completed signing",
+                                accountId: accountId,
+                              });
 
-        alert("All signatures completed! Document has been fully executed.");
-      } else {
-        console.log(
-          `✅ You have signed. Waiting for ${updateData.pendingCount} more signer(s).`
-        );
+                              alert(
+                                "All signatures completed! Document has been fully executed.",
+                              );
+                            } else {
+                              console.log(
+                                `✅ You have signed. Waiting for ${updateData.pendingCount} more signer(s).`,
+                              );
 
-        alert(
-          `Thank you for signing! Waiting for ${updateData.pendingCount} more signer(s) to complete.`
-        );
-      }
-    } else {
-      alert("Error updating signature status.");
-    }
-  } catch (err) {
-    console.error("Error handling post-sign actions", err);
-    alert("Error while updating sign status.");
-  }
+                              alert(
+                                `Thank you for signing! Waiting for ${updateData.pendingCount} more signer(s) to complete.`,
+                              );
+                            }
+                          } else {
+                            alert("Error updating signature status.");
+                          }
+                        } catch (err) {
+                          console.error(
+                            "Error handling post-sign actions",
+                            err,
+                          );
+                          alert("Error while updating sign status.");
+                        }
 
-  handleCloseDialog();
-}}
+                        handleCloseDialog();
+                      }}
                     />
                   </div>
                 )}
@@ -2410,3 +2244,23 @@ const downloadTooltip = isFolderDownloadRestricted
 };
 
 export default DocsFolderTree;
+
+
+// DocsFolderTree.jsx
+// import React, { useState } from "react";
+// import FolderTreeView from "./FolderTreeView";
+
+// const DocsFolderTree = () => {
+//   const [accountId, setAccountId] = useState(
+//     sessionStorage.getItem("accountId"),
+//   );
+//   console.log("acount id for the documentation", accountId);
+
+//   return (
+//     <div className="p-6">
+//       <FolderTreeView accountId={accountId} />
+//     </div>
+//   );
+// };
+
+// export default DocsFolderTree;

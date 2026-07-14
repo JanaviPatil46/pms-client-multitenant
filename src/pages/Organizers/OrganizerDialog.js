@@ -20,25 +20,7 @@ const OrganizerDialog = ({ open, handleClose, organizer }) => {
   const toast = useToast();
   const [organizerDetails, setOrganizerDetails] = useState(null);
 
-// useEffect(() => {
-//   const fetchOrganizerDetails = async () => {
-//     try {
-//       if (!organizer) return;
 
-//       const res = await organizerAPI.getOrganizerAccountWiseById(
-//         organizer
-//       );
-
-//       console.log("Organizer Account Wise Details:", res.data);
-
-//       setOrganizerDetails(res.data);
-//     } catch (error) {
-//       console.error("Error fetching organizer details:", error);
-//     }
-//   };
-
-//   fetchOrganizerDetails();
-// }, [organizer]);
 console.log("orgnaizer details",organizer)
   const fetchAccountDetails = async () => {
     try {
@@ -553,7 +535,7 @@ console.log("orgnaizer details",organizer)
   };
 
   const prepareSubmitData = (finalSubmit = false) => {
-    const allVisibleSections = getVisibleSections();
+    const allVisibleSections = organizer?.sections || [] ;
 
     const sectionsData = allVisibleSections.map((section) => {
       let baseSection = section;

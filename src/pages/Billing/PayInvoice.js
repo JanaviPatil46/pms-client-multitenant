@@ -147,7 +147,7 @@ const amountToPay = invoiceTotal - creditApplied;
     }
 
    const chargeData = {
-    amount: totalAmount * 100,
+    amount: amountToPay * 100,
     account_id: "3A7Sk7IGQ6eu3I5aVRh5hA", // TODO: Provide the actual ACH account ID
     method,
   };
