@@ -157,7 +157,7 @@ export default function Navbar() {
         {/* RIGHT */}
         <div className="flex items-center gap-4">
           {/* Search */}
-          <div
+          {/* <div
             className="
           flex items-center gap-2
           bg-muted px-3 py-1.5 rounded-lg
@@ -173,7 +173,7 @@ export default function Navbar() {
               placeholder:text-muted-foreground
             "
             />
-          </div>
+          </div> */}
 
           {/* Dark Mode */}
           {/* <button
@@ -184,9 +184,9 @@ export default function Navbar() {
           </button> */}
 
           {/* Notification */}
-          <button className="p-2 rounded-lg hover:bg-muted transition">
+          {/* <button className="p-2 rounded-lg hover:bg-muted transition">
             <Bell size={18} />
-          </button>
+          </button> */}
 
           {/* PROFILE */}
           {/* <div className="relative"> */}
