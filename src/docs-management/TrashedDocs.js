@@ -567,7 +567,7 @@ import {
   FaFileAlt,
 } from "react-icons/fa";
 import { AiFillFileUnknown } from "react-icons/ai";
-import { accountDocsAPI } from "../services/api";
+import { accountDocsAPI,accountsAPI } from "../services/api";
 import { useToast } from "../hooks/useToast";
 
 const TrashedDocs = () => {
@@ -609,6 +609,7 @@ const TrashedDocs = () => {
  const fetchAccountDetails = async () => {
       try {
         const res = await accountsAPI.getAccountById(accountId);
+        console.log("Account details:", res.data);
         setAccountName(res.data.accountName);
         // setAdminUserId(res.data.adminUserId.emailSyncEmail);
       } catch (error) {
@@ -689,7 +690,7 @@ const TrashedDocs = () => {
         return;
       }
       try {
-        const res = await accountDocsAPI.deleteItem({
+        const res = await accountDocsAPI.deleteItemByClient({
           targetPath: item.path,
           accountId: accountId,
           accountName: accountName,

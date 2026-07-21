@@ -1270,7 +1270,9 @@ viewDocument: (data) =>
   // Delete file/folder
   deleteItem: (data) =>
     folderManagementApi.post("/accounts/docs/delete", data),
-
+//delete-byclient
+  deleteItemByClient: (data) =>
+    folderManagementApi.post("/accounts/docs/delete-byclient", data),
   // Move to trash
   trashItem: (data) =>
     folderManagementApi.patch("/accounts/docs/trash", data),
