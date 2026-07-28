@@ -158,10 +158,10 @@ const Home = () => {
                   <ProposalsList accountId={accountId} />
                   <DocuSealWrapper accountId={accountId} />
                   {/* <DocuSealMultiSigner accountId={accountId} /> */}
-                  <PendingApprovals
+                  {/* <PendingApprovals
                     accountId={accountId}
                     adminUserId={adminUserId}
-                  />
+                  /> */}
                 </>
               )}
             </div>
