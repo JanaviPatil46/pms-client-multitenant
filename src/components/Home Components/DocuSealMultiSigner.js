@@ -1028,7 +1028,7 @@ const DocuSealMultiSigner = ({ accountId }) => {
       )} */}
 
       {/* ================= SIGNATURE DIALOG ================= */}
-      {dialogOpen && (
+      {/* {dialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
           <div className="w-full max-w-6xl bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50">
@@ -1050,6 +1050,7 @@ const DocuSealMultiSigner = ({ accountId }) => {
                   <DocusealForm
                     src={`https://docuseal.com/s/${selectedSlug}`}
                     email={targetEmail}
+                    
                     onComplete={async (data) => {
                       console.log("Post-sign data:", data);
 
@@ -1123,8 +1124,178 @@ const DocuSealMultiSigner = ({ accountId }) => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
+{dialogOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+    <div className="w-full max-w-6xl bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden flex flex-col max-h-[90vh]">
+      {/* Header - fixed height */}
+      <div className="flex-shrink-0 flex items-center justify-between px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50">
+        <div>
+          <h3 className="text-2xl font-bold text-slate-800">Digital Signature</h3>
+          <p className="text-sm text-slate-500 mt-1">Complete your signature process securely</p>
+        </div>
+        <button
+          onClick={handleCloseDialog}
+          className="h-11 w-11 rounded-2xl hover:bg-slate-100 flex items-center justify-center transition-all"
+        >
+          <X className="w-5 h-5 text-slate-600" />
+        </button>
+      </div>
 
+      {/* Content - scrollable */}
+      <div className="flex-1 overflow-auto bg-slate-100 min-h-0">
+        {selectedSlug && (
+          <div className="w-full h-full min-h-[600px] bg-white">
+            {/* <DocusealForm
+                    src={`https://docuseal.com/s/${selectedSlug}`}
+                    email={targetEmail}
+                    
+                    onComplete={async (data) => {
+                      console.log("Post-sign data:", data);
+
+                      try {
+                        const updateSubmitterRes = await esignAPI.updateSubmitterStatus(
+                          data.template.external_id,
+                          {
+                            submitterEmail: targetEmail,
+                            submissionId: data.submission_id,
+                          }
+                        );
+
+                        const updateData = updateSubmitterRes.data;
+
+                        if (updateData.success) {
+                          console.log("✅ Document replaced with latest signature");
+
+                          const doc = submissions.find(
+                            s => s.esignRequestId === data.template.external_id
+                          );
+
+                          if (updateData.allCompleted) {
+                            console.log("🎉 All submitters have completed signing!");
+
+                            const fullPath = decodeURIComponent(
+                              updateData.esignRecord.fileUrl.split("/uploads/accounts/")[1]
+                            );
+
+                            console.log("Full file path:", fullPath);
+
+                            await updateStatus(
+                              { path: fullPath },
+                              "signStatus",
+                              "signatureCompleted",
+                              null,
+                              null,
+                              accountName
+                            );
+
+                            await esignAPI.notifyAdmin({
+                              clientName: targetEmail,
+                              documentName: doc?.name || "Document",
+                              message: "All parties have completed signing",
+                              accountId: accountId,
+                            });
+
+                            alert("All signatures completed! Document has been fully executed.");
+                          } else {
+                            console.log(
+                              `✅ You have signed. Waiting for ${updateData.pendingCount} more signer(s).`
+                            );
+
+                            alert(
+                              `Thank you for signing! Waiting for ${updateData.pendingCount} more signer(s) to complete.`
+                            );
+                          }
+                        } else {
+                          alert("Error updating signature status.");
+                        }
+                      } catch (err) {
+                        console.error("Error handling post-sign actions", err);
+                        alert("Error while updating sign status.");
+                      }
+
+                      handleCloseDialog();
+                      fetchFolderTree();
+                    }}
+                  /> */}
+                   <DocusealForm
+                    src={`https://docuseal.com/s/${selectedSlug}`}
+                    email={targetEmail}
+                    
+                    onComplete={async (data) => {
+                      console.log("Post-sign data:", data);
+
+                      try {
+                        const updateSubmitterRes = await esignAPI.updateSubmitterStatus(
+                          data.template.external_id,
+                          {
+                            submitterEmail: targetEmail,
+                            submissionId: data.submission_id,
+                          }
+                        );
+
+                        const updateData = updateSubmitterRes.data;
+
+                        if (updateData.success) {
+                          console.log("✅ Document replaced with latest signature");
+
+                          const doc = submissions.find(
+                            s => s.esignRequestId === data.template.external_id
+                          );
+
+                          if (updateData.allCompleted) {
+                            console.log("🎉 All submitters have completed signing!");
+
+                            const fullPath = decodeURIComponent(
+                              updateData.esignRecord.fileUrl.split("/uploads/accounts/")[1]
+                            );
+
+                            console.log("Full file path:", fullPath);
+
+                            await updateStatus(
+                              { path: fullPath },
+                              "signStatus",
+                              "signatureCompleted",
+                              null,
+                              null,
+                              accountName
+                            );
+
+                            await esignAPI.notifyAdmin({
+                              clientName: targetEmail,
+                              documentName: doc?.name || "Document",
+                              message: "All parties have completed signing",
+                              accountId: accountId,
+                            });
+
+                            alert("All signatures completed! Document has been fully executed.");
+                          } else {
+                            console.log(
+                              `✅ You have signed. Waiting for ${updateData.pendingCount} more signer(s).`
+                            );
+
+                            alert(
+                              `Thank you for signing! Waiting for ${updateData.pendingCount} more signer(s) to complete.`
+                            );
+                          }
+                        } else {
+                          alert("Error updating signature status.");
+                        }
+                      } catch (err) {
+                        console.error("Error handling post-sign actions", err);
+                        alert("Error while updating sign status.");
+                      }
+
+                      handleCloseDialog();
+                      fetchFolderTree();
+                    }}
+                  />
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
       {/* ================= DOCUMENT APPROVAL DIALOG ================= */}
       {openViewer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">

@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams,useNavigate } from "react-router-dom";
 // import { toast } from "material-react-toastify";
-import Editor from "../../components/Texteditor";
+import Editor from "../../TextEditor/TextEditor";
 import { accountsAPI, chatAPI } from "../../services/api";
 import { Send, MoreVertical, X, Square, CheckSquare, Loader2, Backpack } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
 import { Check, CheckCheck ,MoveLeft} from "lucide-react";
+import TextEditor from "../../TextEditor/TextEditor";
 
 const UpdateChat = () => {
   const [accId] = useState(sessionStorage.getItem("accountId"));
@@ -81,6 +82,7 @@ const UpdateChat = () => {
 
   // Edit message function for client
   const handleEditMessage = (message) => {
+    console.log("Attempting to edit message:", message);
     if (!canEditMessage(message.time)) {
       toast.error("Cannot edit message after 10 minutes");
       return;
@@ -211,45 +213,166 @@ const UpdateChat = () => {
   };
 
   // ✅ SEND MESSAGE
-  const updateChatDescription = async (message = "") => {
-    const contentToSend = message.trim() || editorContent.trim();
-    if (!contentToSend) return;
+  // const updateChatDescription = async (message = "") => {
+  //   const contentToSend = message.trim() || editorContent.trim();
+  //   if (!contentToSend) return;
 
-    setIsSending(true);
+  //   setIsSending(true);
 
-    const newDescription = {
-      message: contentToSend,
+  //   const newDescription = {
+  //     message: contentToSend,
+  //     fromwhome: "client",
+  //     senderid: accountName,
+  //   };
+
+  //   if (replyTo) {
+  //     newDescription.replyTo = replyTo._id;
+  //   }
+
+  //   try {
+  //     await chatAPI.sendMessageFromClient(_id, {
+  //       newDescriptions: [newDescription],
+  //     });
+
+  //     setChatDescriptions((prev) => [
+  //       ...prev,
+  //       { ...newDescription, time: new Date().toISOString() },
+  //     ]);
+
+  //     setEditorContent("");
+  //     setReplyTo(null);
+
+  //     toast.success("Message sent");
+
+  //     getsChatDetails();
+  //   } catch (error) {
+  //     toast.error("Send failed");
+  //   } finally {
+  //     setIsSending(false);
+  //   }
+  // };
+   const [uploadedFiles, setUploadedFiles] = useState([]); 
+const updateChatDescription = async (message = "", isHTML = false) => {
+  const contentToSend = message.trim() || editorContent.trim();
+  console.log("editor content", contentToSend);
+   setIsSending(true);
+  // Check if we have files
+  const hasFiles = uploadedFiles && uploadedFiles.length > 0;
+  console.log("has files data", uploadedFiles);
+  
+  // If no content and no files, don't send
+  if (!contentToSend && !hasFiles) {
+    // showToast({
+    //   title: "Please enter a message or attach a file",
+    //   type: "warning",
+    // });
+    toast.warning("Please enter a message or attach a file")
+    return;
+  }
+
+  try {
+    if (hasFiles) {
+      // We have files - use FormData
+      const formData = new FormData();
+      
+      // Create the description object
+      const newDescription = {
       fromwhome: "client",
-      senderid: accountName,
-    };
+        senderid: accountName,
+      };
 
-    if (replyTo) {
-      newDescription.replyTo = replyTo._id;
-    }
+      // Only add message if there's content
+      if (contentToSend) {
+        newDescription.message = isHTML ? contentToSend : contentToSend;
+        newDescription.isHTML = isHTML; // Flag to indicate HTML content
+      }
 
-    try {
+      if (replyTo) newDescription.replyTo = replyTo._id;
+
+      // Append description as JSON string
+      formData.append("newDescriptions", JSON.stringify([newDescription]));
+
+      // Append files
+      uploadedFiles.forEach((file) => {
+        let fileToAppend = null;
+        let fileName = file.name || 'file';
+        
+        if (file instanceof File) {
+          fileToAppend = file;
+          fileName = file.name;
+        } else if (file.file) {
+          fileToAppend = file.file;
+          fileName = file.file.name || file.name || 'file';
+        } else if (file.fileData) {
+          if (file.fileData instanceof Blob || file.fileData instanceof File) {
+            fileToAppend = file.fileData;
+            fileName = file.name || 'file';
+          } else {
+            const blob = new Blob([file.fileData]);
+            fileToAppend = blob;
+            fileName = file.name || 'file';
+          }
+        } else if (file.blob) {
+          fileToAppend = file.blob;
+          fileName = file.name || 'file';
+        } else if (file instanceof Blob) {
+          fileToAppend = file;
+          fileName = file.name || 'file';
+        } else if (file.data) {
+          const blob = new Blob([file.data]);
+          fileToAppend = blob;
+          fileName = file.name || 'file';
+        }
+
+        if (fileToAppend) {
+          formData.append("attachments", fileToAppend, fileName);
+        }
+      });
+
+      // Send with FormData
+      await chatAPI.sendMessageFromClient(_id, formData);
+      
+      // Clear uploaded files after successful send
+      setUploadedFiles([]);
+      
+      // showToast({
+      //   title: `Message sent with ${uploadedFiles.length} attachment${uploadedFiles.length > 1 ? 's' : ''}`,
+      //   type: "success",
+      // });
+      toast.success(`Message sent with ${uploadedFiles.length} attachment${uploadedFiles.length > 1 ? 's' : ''}`)
+    } else {
+      // No files, just text message
+      const newDescription = {
+        message: contentToSend,
+       fromwhome: "client",
+        senderid: accountName,
+        isHTML: isHTML || false,
+      };
+
+      if (replyTo) newDescription.replyTo = replyTo._id;
+
       await chatAPI.sendMessageFromClient(_id, {
         newDescriptions: [newDescription],
       });
+      
+     toast.success("Message sent");
 
-      setChatDescriptions((prev) => [
-        ...prev,
-        { ...newDescription, time: new Date().toISOString() },
-      ]);
-
-      setEditorContent("");
-      setReplyTo(null);
-
-      toast.success("Message sent");
-
-      getsChatDetails();
-    } catch (error) {
-      toast.error("Send failed");
-    } finally {
-      setIsSending(false);
     }
-  };
 
+    // Common success actions
+    setEditorContent("");
+    setReplyTo(null);
+  
+    getsChatDetails();
+    
+  } catch (error) {
+    console.error("Send failed:", error);
+    toast.error(error.response?.data?.message || "Send failed");
+  }
+  finally {
+      setIsSending(false);
+   }
+};
   // Handle click outside menu
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -334,8 +457,9 @@ return (
             </button>
           </div>
 
-          <div className="p-5 min-h-[200px]">
-            <Editor onChange={setEditContent} value={editContent} />
+             <div style={{ maxWidth: 600, }}>
+        
+            <TextEditor  value={editContent} onChange={setEditContent} />
           </div>
 
           <div className="flex gap-2 justify-end px-5 py-3.5 border-t border-border bg-muted/20">
@@ -419,111 +543,7 @@ return (
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
 
-        {/* {Array.isArray(chatDescriptions) && chatDescriptions.length > 0 ? (
-          chatDescriptions.map((desc, index) => {
-            const isClient = desc.fromwhome?.toLowerCase() === "client";
-            const isAdmin = desc.fromwhome?.toLowerCase() === "admin";
-            const messageTime = desc.time ? formatDate(desc.time) : "Just now";
-            const isEditable = isClient && canEditMessage(desc.time);
-            const isHighlighted = desc._id === highlightedId;
-
-            let senderDisplayName = "";
-            if (isClient) senderDisplayName = "You";
-            else if (isAdmin && desc.senderid) senderDisplayName = desc.senderid;
-
-            return (
-              <div
-                key={desc._id || index}
-                ref={(el) => { if (desc._id) messageRefs.current[desc._id] = el; }}
-                className={`flex ${isClient ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`relative max-w-[75%] rounded-xl px-4 py-3 shadow-sm border transition
-                    ${isHighlighted
-                      ? "bg-accent/20 border-accent/40"
-                      : isClient
-                        ? "bg-primary/10 border-primary/20"
-                        : "bg-muted border-border"}
-                  `}
-                >
-
-                 
-                  {desc.replyTo && (() => {
-                    const repliedMsg = chatDescriptions.find((msg) => msg._id === desc.replyTo);
-                    if (!repliedMsg) return null;
-                    return (
-                      <div
-                        className="mb-2 border-l-2 border-accent pl-2 bg-muted/40 rounded cursor-pointer"
-                        onClick={() => {
-                          const el = messageRefs.current[desc.replyTo];
-                          if (el) {
-                            el.scrollIntoView({ behavior: "smooth", block: "center" });
-                            setHighlightedId(desc.replyTo);
-                            setTimeout(() => setHighlightedId(null), 2000);
-                          }
-                        }}
-                      >
-                        <p className="text-[11px] font-bold text-accent">
-                          {repliedMsg.fromwhome === "client" ? "You" : repliedMsg.senderid || "Admin"}
-                        </p>
-                        <p
-                          className="text-xs text-muted-foreground italic line-clamp-2"
-                          dangerouslySetInnerHTML={{
-                            __html: repliedMsg.message?.length > 100
-                              ? repliedMsg.message.slice(0, 100) + "..."
-                              : repliedMsg.message,
-                          }}
-                        />
-                      </div>
-                    );
-                  })()}
-
-                 
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="text-xs font-semibold text-foreground">{senderDisplayName}</span>
-                    <button
-                      type="button"
-                      onClick={(e) => handleMenuClick(e, desc)}
-                      className="text-muted-foreground hover:text-foreground transition"
-                    >
-                      <MoreVertical size={13} />
-                    </button>
-                  </div>
-
-              
-                  <div
-                    className="text-sm text-foreground prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{
-                      __html: typeof desc.message === "string" ? desc.message : "No message available",
-                    }}
-                  />
-
-                
-                  <div className="flex items-center justify-end gap-1 mt-1.5">
-  <span className="text-[10px] text-muted-foreground">
-    {messageTime}
-  </span>
-
-  {isClient && (
-    <MessageStatus isRead={desc.isRead} />
-  )}
-</div>
-
-{isClient && !isEditable && desc.time && (
-  <p className="text-[10px] italic opacity-60 text-right">
-    Edit expired
-  </p>
-)}
-                </div>
-              </div>
-            );
-          })
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-            <Send size={28} className="mb-2 opacity-20" />
-            <p className="text-sm">No messages yet</p>
-          </div>
-        )} */}
+      
 {Array.isArray(groupedMessages) && groupedMessages.length > 0 ? (
   groupedMessages.map((item, index) => {
     if (item.type === "date") {
@@ -697,6 +717,11 @@ return (
                 isRead={desc.isRead}
               />
             )}
+             {desc.isEdited === true && (
+  <span className="text-xs text-muted-foreground ml-2">
+    (edited)
+  </span>
+)}
           </div>
 
           {isClient &&
@@ -706,6 +731,7 @@ return (
                 Edit expired
               </p>
             )}
+         
         </div>
       </div>
     );
@@ -749,11 +775,85 @@ return (
           </button>
         </div>
       )}
+<div className="flex flex-col ">
+  {/* Scrollable Editor */}
+  <div className="flex-1 min-h-0 overflow-hidden">
+    <div className="h-full max-h-[300px] overflow-y-auto border rounded-lg">
+      <Editor
+        value={editorContent}
+        onChange={handleEditorChange}
+        accountId={accId}
+        onFileUploadComplete={(files, message, isHTML = false) => {
+          if (isHTML) {
+            setEditorContent(prev => prev + message);
 
+            setTimeout(() => {
+              updateChatDescription(message, true);
+            }, 100);
+          } else {
+            const fileNames = files.map(f => f.name || f).join("\n");
+            const plainMessage = `📎 ${fileNames}`;
+
+            setEditorContent(prev => prev + plainMessage);
+
+            setTimeout(() => {
+              updateChatDescription(plainMessage);
+            }, 100);
+          }
+        }}
+      />
+    </div>
+  </div>
+
+  {/* Sticky Footer */}
+  <div className="mt-3 flex justify-end bg-white pt-2">
+    <button
+      type="button"
+      onClick={() => updateChatDescription()}
+      disabled={isSending || !editorContent.trim()}
+      className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:opacity-90 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {isSending ? (
+        <Loader2 size={15} className="animate-spin" />
+      ) : (
+        <Send size={15} />
+      )}
+      {!isSending && <span>Send</span>}
+    </button>
+  </div>
+</div>
       
-      <div className="shrink-0 border-t border-border bg-card p-3 flex gap-2 items-end">
-        <div className="flex-1">
-          <Editor onChange={handleEditorChange} value={editorContent} />
+      {/* <div className="shrink-0 border-t border-border bg-card p-3 flex gap-2 items-end">
+        <div className="flex-1 min-w-0">
+       
+                        <Editor 
+  value={editorContent} 
+  onChange={handleEditorChange} 
+  accountId={accId}
+  onFileUploadComplete={(files, message, isHTML = false) => {
+    console.log("Files uploaded:", files);
+    console.log("Message:", message);
+    
+    if (isHTML) {
+      // If message contains HTML, insert it directly
+      setEditorContent(prev => prev + message);
+      
+      // Auto-send after a short delay
+      setTimeout(() => {
+        updateChatDescription(message, true); // Pass isHTML flag
+      }, 100);
+    } else {
+      // Plain text fallback
+      const fileNames = files.map(f => f.name || f).join('\n');
+      const plainMessage = `📎 ${fileNames}`;
+      setEditorContent(prev => prev  + plainMessage);
+      
+      setTimeout(() => {
+        updateChatDescription(plainMessage);
+      }, 100);
+    }
+  }}
+/>
         </div>
 
         <button
@@ -765,7 +865,7 @@ return (
           {isSending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
           {!isSending && <span>Send</span>}
         </button>
-      </div>
+      </div> */}
     </div>
 
     {/* Tasks */}

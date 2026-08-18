@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+// import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+// import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { debounce } from "lodash";
 import {
   organizerAPI,
@@ -195,31 +197,87 @@ console.log("orgnaizer details",organizer)
     });
   }, []);
 
-  const addRepeatedSection = (sectionId) => {
+  // const addRepeatedSection = (sectionId) => {
+  //   const baseSection = sections?.find((s) => s.id === sectionId);
+  //   if (!baseSection) return;
+
+  //   setRepeatedSections((prev) => {
+  //     const currentRepeats = prev[sectionId] || [];
+  //     const baseId = Number(sectionId);
+  //     const newRepeatId = baseId + (currentRepeats.length + 1) * 1000000;
+
+  //     console.log(
+  //       `Adding repeated section: Base=${sectionId}, New=${newRepeatId}`,
+  //     );
+
+  //     toast.success(`Added a new repeated section for "${baseSection.text}"`);
+  //     return {
+  //       ...prev,
+  //       [sectionId]: [...currentRepeats, newRepeatId],
+  //     };
+  //   });
+  // };
+const addRepeatedSection = (sectionId) => {
+  const baseSection = sections?.find((s) => s.id === sectionId);
+  if (!baseSection) return;
+
+  setRepeatedSections((prev) => {
+    const currentRepeats = prev[sectionId] || [];
+    const baseId = Number(sectionId);
+    const newRepeatId = baseId + (currentRepeats.length + 1) * 1000000;
+
+    console.log(`Adding repeated section: Base=${sectionId}, New=${newRepeatId}`);
+
+    // Initialize empty values for the new repeated section
+    // This ensures it doesn't inherit values from the original
+    baseSection.formElements?.forEach((element) => {
+      const key = `${newRepeatId}_${element.text}`;
+      
+      // Don't set any values - they should start empty
+      // Just make sure they exist in the state with empty values
+      
+      switch (element.type) {
+        case "Free Entry":
+        case "Email":
+        case "Number":
+          setInputValues((prev) => ({ ...prev, [key]: "" }));
+          break;
+        case "Radio Buttons":
+          setRadioValues((prev) => ({ ...prev, [key]: "" }));
+          break;
+        case "Checkboxes":
+          setCheckboxValues((prev) => ({ ...prev, [key]: {} }));
+          break;
+        case "Yes/No":
+          setSelectedYesNoValues((prev) => ({ ...prev, [key]: "" }));
+          break;
+        case "Dropdown":
+          setSelectedDropdownValues((prev) => ({ ...prev, [key]: "" }));
+          break;
+        case "Date":
+          setDateValues((prev) => ({ ...prev, [key]: null }));
+          break;
+        case "File Upload":
+          setUploadedFiles((prev) => ({ ...prev, [key]: [] }));
+          break;
+      }
+    });
+
+    toast.success(`Added a new repeated section for "${baseSection.text}"`);
+    return {
+      ...prev,
+      [sectionId]: [...currentRepeats, newRepeatId],
+    };
+  });
+};
+  const removeRepeatedSection = (sectionId, repeatId) => {
     const baseSection = sections?.find((s) => s.id === sectionId);
     if (!baseSection) return;
-
-    setRepeatedSections((prev) => {
-      const currentRepeats = prev[sectionId] || [];
-      const baseId = Number(sectionId);
-      const newRepeatId = baseId + (currentRepeats.length + 1) * 1000000;
-
-      console.log(
-        `Adding repeated section: Base=${sectionId}, New=${newRepeatId}`,
-      );
-
-      return {
-        ...prev,
-        [sectionId]: [...currentRepeats, newRepeatId],
-      };
-    });
-  };
-
-  const removeRepeatedSection = (sectionId, repeatId) => {
     setRepeatedSections((prev) => {
       const currentRepeats = prev[sectionId] || [];
       const updatedRepeats = currentRepeats.filter((id) => id !== repeatId);
 
+      toast.success(`Removed repeated section for "${baseSection.text}"`);
       cleanUpSectionData(repeatId);
 
       return {
@@ -534,111 +592,365 @@ console.log("orgnaizer details",organizer)
     return allSections;
   };
 
-  const prepareSubmitData = (finalSubmit = false) => {
-    const allVisibleSections = organizer?.sections || [] ;
+  // const prepareSubmitData = (finalSubmit = false) => {
+  //   const allVisibleSections = organizer?.sections || [] ;
 
-    const sectionsData = allVisibleSections.map((section) => {
-      let baseSection = section;
+  //   const sectionsData = allVisibleSections.map((section) => {
+  //     let baseSection = section;
 
-      if (section.isRepeated && section.originalSectionId) {
-        const originalSection = sections?.find(
-          (s) => s.id === section.originalSectionId,
-        );
-        if (originalSection) {
-          baseSection = {
-            ...originalSection,
-            id: section.id,
-            text: section.text || originalSection.text,
-            sectionsettings: {
-              ...originalSection.sectionsettings,
-              isRepeated: true,
-              originalSectionId: section.originalSectionId,
-            },
-          };
-        }
-      }
+  //     if (section.isRepeated && section.originalSectionId) {
+  //       const originalSection = sections?.find(
+  //         (s) => s.id === section.originalSectionId,
+  //       );
+  //       if (originalSection) {
+  //         baseSection = {
+  //           ...originalSection,
+  //           id: section.id,
+  //           text: section.text || originalSection.text,
+  //           sectionsettings: {
+  //             ...originalSection.sectionsettings,
+  //             isRepeated: true,
+  //             originalSectionId: section.originalSectionId,
+  //           },
+  //         };
+  //       }
+  //     }
 
-      return {
-        name: baseSection?.text || "",
-        id: baseSection?.id?.toString() || "",
-        text: baseSection?.text || "",
-        sectionsettings: baseSection?.sectionsettings || {},
-        formElements:
-          baseSection?.formElements?.map((question) => {
-            const questionData = {
-              type: question?.type || "",
-              id: question?.id || "",
-              sectionid: Number(baseSection?.id) || 0,
-              options:
-                question?.options?.map((option) => ({
-                  id: option?.id || "",
-                  text: option?.text || "",
-                  selected: getOptionSelectedState(
-                    question,
-                    option,
-                    Number(baseSection.id),
-                  ),
-                })) || [],
-              text: question?.text || "",
-              textvalue: getQuestionTextValue(question, Number(baseSection.id)),
-              questionsectionsettings: question?.questionsectionsettings,
-            };
+  //     return {
+  //       name: baseSection?.text || "",
+  //       id: baseSection?.id?.toString() || "",
+  //       text: baseSection?.text || "",
+  //       sectionsettings: baseSection?.sectionsettings || {},
+  //       formElements:
+  //         baseSection?.formElements?.map((question) => {
+  //           const questionData = {
+  //             type: question?.type || "",
+  //             id: question?.id || "",
+  //             sectionid: Number(baseSection?.id) || 0,
+  //             options:
+  //               question?.options?.map((option) => ({
+  //                 id: option?.id || "",
+  //                 text: option?.text || "",
+  //                 selected: getOptionSelectedState(
+  //                   question,
+  //                   option,
+  //                   Number(baseSection.id),
+  //                 ),
+  //               })) || [],
+  //             text: question?.text || "",
+  //             textvalue: getQuestionTextValue(question, Number(baseSection.id)),
+  //             questionsectionsettings: question?.questionsectionsettings,
+  //           };
 
-            if (question.type === "File Upload") {
-              const fileKey = `${baseSection.id}_${question.text}`;
-              const fileInfos = uploadedFiles[fileKey];
+  //           if (question.type === "File Upload") {
+  //             const fileKey = `${baseSection.id}_${question.text}`;
+  //             const fileInfos = uploadedFiles[fileKey];
 
-              if (fileInfos && fileInfos.length > 0) {
-                const completedFiles = fileInfos.filter(
-                  (file) => file.status === "completed",
-                );
-                if (completedFiles.length > 0) {
-                  questionData.fileMetadata = completedFiles.map(
-                    (fileInfo) => ({
-                      fileName: fileInfo.fileName,
-                      filePath: fileInfo.filePath || "",
-                      uploadDate:
-                        fileInfo.uploadDate || new Date().toISOString(),
-                      uploadedBy: accountName,
-                    }),
-                  );
-                  questionData.textvalue = completedFiles
-                    .map((f) => f.fileName)
-                    .join(", ");
-                } else {
-                  questionData.textvalue = "";
-                }
-              } else {
-                questionData.textvalue = "";
-              }
-            }
+  //             if (fileInfos && fileInfos.length > 0) {
+  //               const completedFiles = fileInfos.filter(
+  //                 (file) => file.status === "completed",
+  //               );
+  //               if (completedFiles.length > 0) {
+  //                 questionData.fileMetadata = completedFiles.map(
+  //                   (fileInfo) => ({
+  //                     fileName: fileInfo.fileName,
+  //                     filePath: fileInfo.filePath || "",
+  //                     uploadDate:
+  //                       fileInfo.uploadDate || new Date().toISOString(),
+  //                     uploadedBy: accountName,
+  //                   }),
+  //                 );
+  //                 questionData.textvalue = completedFiles
+  //                   .map((f) => f.fileName)
+  //                   .join(", ");
+  //               } else {
+  //                 questionData.textvalue = "";
+  //               }
+  //             } else {
+  //               questionData.textvalue = "";
+  //             }
+  //           }
 
-            return questionData;
-          }) || [],
-      };
-    });
+  //           return questionData;
+  //         }) || [],
+  //     };
+  //   });
 
-    const data = {
-      sections: sectionsData,
-      status: finalSubmit ? "Completed" : "In Progress",
-      completedby: accountName,
-      active: true,
-      repeatedSections: repeatedSections,
+  //   const data = {
+  //     sections: sectionsData,
+  //     status: finalSubmit ? "Completed" : "In Progress",
+  //     completedby: accountName,
+  //     active: true,
+  //     repeatedSections: repeatedSections,
+  //   };
+
+  //   console.log("Data being saved to backend:", JSON.stringify(data, null, 2));
+  //   console.log("Total sections in data:", sectionsData.length);
+  //   console.log("Total visible sections:", allVisibleSections.length);
+  //   console.log(
+  //     "Status in prepareSubmitData:",
+  //     data.status,
+  //     "finalSubmit:",
+  //     finalSubmit,
+  //   );
+
+  //   return data;
+  // };
+const prepareSubmitData = (finalSubmit = false) => {
+  // Get ALL sections from the organizer
+  const allSections = organizer?.sections || [];
+
+  const sectionsData = [];
+
+  allSections.forEach((section) => {
+    // Add the original section
+    const originalSectionData = {
+      name: section?.text || "",
+      id: section?.id?.toString() || "",
+      text: section?.text || "",
+      sectionsettings: {
+        ...section?.sectionsettings || {},
+        sectionRepeatingMode: section?.sectionsettings?.sectionRepeatingMode || false,
+      },
+      formElements: section?.formElements?.map((question) => {
+        const sectionId = section?.id?.toString() || "";
+        const fileKey = `${sectionId}_${question.text}`;
+        const fileInfos = uploadedFiles[fileKey];
+        const completedFiles = fileInfos?.filter(f => f.status === "completed") || [];
+
+        return {
+          type: question?.type || "",
+          id: question?.id || "",
+          sectionid: Number(sectionId) || 0,
+          options: question?.options?.map((option) => ({
+            id: option?.id || "",
+            text: option?.text || "",
+            selected: getOptionSelectedState(question, option, sectionId),
+          })) || [],
+          text: question?.text || "",
+          textvalue: getQuestionTextValue(question, sectionId),
+          questionsectionsettings: question?.questionsectionsettings || {},
+          ...(question.type === "File Upload" && completedFiles.length > 0 && {
+            fileMetadata: completedFiles.map((fileInfo) => ({
+              fileName: fileInfo.fileName,
+              filePath: fileInfo.filePath || "",
+              uploadDate: fileInfo.uploadDate || new Date().toISOString(),
+              uploadedBy: accountName,
+            })),
+          }),
+        };
+      }) || [],
     };
 
-    console.log("Data being saved to backend:", JSON.stringify(data, null, 2));
-    console.log("Total sections in data:", sectionsData.length);
-    console.log("Total visible sections:", allVisibleSections.length);
-    console.log(
-      "Status in prepareSubmitData:",
-      data.status,
-      "finalSubmit:",
-      finalSubmit,
-    );
+    sectionsData.push(originalSectionData);
 
-    return data;
+    // Add repeated instances if they exist
+    if (repeatedSections[section.id] && repeatedSections[section.id].length > 0) {
+      repeatedSections[section.id].forEach((repeatId, index) => {
+        // Create a completely new section data for the repeated instance
+        const repeatedSectionData = {
+          name: `${section.text} (Repeated ${index + 1})`,
+          id: repeatId.toString(),
+          text: `${section.text} (Repeated ${index + 1})`,
+          sectionsettings: {
+            ...section?.sectionsettings || {},
+            isRepeated: true,
+            originalSectionId: section.id,
+            sectionRepeatingMode: false,
+          },
+          // Important: Create new form elements for the repeated section
+          formElements: section?.formElements?.map((question) => {
+            // Use the repeatId for the key
+            const fileKey = `${repeatId}_${question.text}`;
+            const fileInfos = uploadedFiles[fileKey];
+            const completedFiles = fileInfos?.filter(f => f.status === "completed") || [];
+
+            return {
+              type: question?.type || "",
+              id: question?.id || "",
+              sectionid: Number(repeatId),
+              options: question?.options?.map((option) => ({
+                id: option?.id || "",
+                text: option?.text || "",
+                // Get the selected state for this specific repeated section
+                selected: getOptionSelectedState(
+                  { ...question, text: question.text },
+                  option,
+                  repeatId
+                ),
+              })) || [],
+              text: question?.text || "",
+              // Get the value for this specific repeated section
+              textvalue: getQuestionTextValue(
+                { ...question, text: question.text },
+                repeatId
+              ),
+              questionsectionsettings: question?.questionsectionsettings || {},
+              ...(question.type === "File Upload" && completedFiles.length > 0 && {
+                fileMetadata: completedFiles.map((fileInfo) => ({
+                  fileName: fileInfo.fileName,
+                  filePath: fileInfo.filePath || "",
+                  uploadDate: fileInfo.uploadDate || new Date().toISOString(),
+                  uploadedBy: accountName,
+                })),
+              }),
+            };
+          }) || [],
+        };
+
+        sectionsData.push(repeatedSectionData);
+      });
+    }
+  });
+
+  const data = {
+    sections: sectionsData,
+    status: finalSubmit ? "Completed" : "In Progress",
+    completedby: accountName,
+    active: true,
+    repeatedSections: repeatedSections,
+    lastSaved: new Date().toISOString(),
   };
 
+  if (finalSubmit) {
+    data.status = "Completed";
+    data.issealed = true;
+    data.completedDate = new Date().toISOString();
+  }
+
+  console.log("Data being saved:", {
+    totalSections: sectionsData.length,
+    originalSections: allSections.length,
+    repeatedSectionsCount: Object.keys(repeatedSections).length,
+    totalRepeatedInstances: Object.values(repeatedSections).reduce((acc, arr) => acc + arr.length, 0),
+    status: data.status,
+  });
+
+  return data;
+};
+//   const prepareSubmitData = (finalSubmit = false) => {
+//   // Get ALL sections from the organizer, not just visible ones
+//   const allSections = organizer?.sections || [];
+
+//   const sectionsData = allSections.map((section) => {
+//     // Check if this section has repeated instances
+//     const hasRepeatedInstances = repeatedSections[section.id] && repeatedSections[section.id].length > 0;
+    
+//     // First, add the original section
+//     const originalSectionData = {
+//       name: section?.text || "",
+//       id: section?.id?.toString() || "",
+//       text: section?.text || "",
+//       sectionsettings: {
+//         ...section?.sectionsettings || {},
+//         // Preserve the sectionRepeatingMode flag
+//         sectionRepeatingMode: section?.sectionsettings?.sectionRepeatingMode || false,
+//       },
+//       formElements: section?.formElements?.map((question) => {
+//         const questionData = {
+//           type: question?.type || "",
+//           id: question?.id || "",
+//           sectionid: Number(section?.id) || 0,
+//           options: question?.options?.map((option) => ({
+//             id: option?.id || "",
+//             text: option?.text || "",
+//             selected: getOptionSelectedState(question, option, Number(section.id)),
+//           })) || [],
+//           text: question?.text || "",
+//           textvalue: getQuestionTextValue(question, Number(section.id)),
+//           questionsectionsettings: question?.questionsectionsettings || {},
+//         };
+
+//         // Handle file upload data
+//         if (question.type === "File Upload") {
+//           const fileKey = `${section.id}_${question.text}`;
+//           const fileInfos = uploadedFiles[fileKey];
+
+//           if (fileInfos && fileInfos.length > 0) {
+//             const completedFiles = fileInfos.filter(
+//               (file) => file.status === "completed"
+//             );
+//             if (completedFiles.length > 0) {
+//               questionData.fileMetadata = completedFiles.map((fileInfo) => ({
+//                 fileName: fileInfo.fileName,
+//                 filePath: fileInfo.filePath || "",
+//                 uploadDate: fileInfo.uploadDate || new Date().toISOString(),
+//                 uploadedBy: accountName,
+//               }));
+//               questionData.textvalue = completedFiles
+//                 .map((f) => f.fileName)
+//                 .join(", ");
+//             } else {
+//               questionData.textvalue = "";
+//             }
+//           } else {
+//             questionData.textvalue = "";
+//           }
+//         }
+
+//         return questionData;
+//       }) || [],
+//     };
+
+//     // If no repeated instances, just return the original section
+//     if (!hasRepeatedInstances) {
+//       return originalSectionData;
+//     }
+
+//     // If there are repeated instances, we need to include both the original
+//     // and all the repeated versions
+//     const allSectionData = [originalSectionData];
+
+//     // Add each repeated section instance
+//     repeatedSections[section.id].forEach((repeatId, index) => {
+//       const repeatedSectionData = {
+//         ...originalSectionData,
+//         id: repeatId.toString(),
+//         text: `${section.text} (Repeated ${index + 1})`,
+//         sectionsettings: {
+//           ...originalSectionData.sectionsettings,
+//           isRepeated: true,
+//           originalSectionId: section.id,
+//           sectionRepeatingMode: false, // Disable repeating for repeated instances
+//         },
+//         formElements: originalSectionData.formElements.map((element) => ({
+//           ...element,
+//           // Ensure sectionid is updated to the repeated section ID
+//           sectionid: Number(repeatId),
+//         })),
+//       };
+//       allSectionData.push(repeatedSectionData);
+//     });
+
+//     return allSectionData;
+//   }).flat(); // Flatten the array since we might have arrays of sections
+
+//   const data = {
+//     sections: sectionsData,
+//     status: finalSubmit ? "Completed" : "In Progress",
+//     completedby: accountName,
+//     active: true,
+//     repeatedSections: repeatedSections, // Keep track of which sections are repeated
+//     lastSaved: new Date().toISOString(),
+//   };
+
+//   // If final submit, add completion fields
+//   if (finalSubmit) {
+//     data.status = "Completed";
+//     data.issealed = true;
+//     data.completedDate = new Date().toISOString();
+//   }
+
+//   console.log("Data being saved:", {
+//     totalSections: sectionsData.length,
+//     originalSections: allSections.length,
+//     repeatedSectionsCount: Object.keys(repeatedSections).length,
+//     totalRepeatedInstances: Object.values(repeatedSections).reduce((acc, arr) => acc + arr.length, 0),
+//     status: data.status,
+//   });
+
+//   return data;
+// };
   useEffect(() => {
     if (open && organizer?._id && organizer?.status !== "Completed") {
       const data = prepareSubmitData(false);
@@ -1111,6 +1423,7 @@ useEffect(() => {
         issealed: true,
         completedby: accountName,
         completedDate: new Date().toISOString(),
+         repeatedSections: repeatedSections,
       };
 
       console.log("Final submission data:", {
@@ -1143,63 +1456,125 @@ useEffect(() => {
       );
     }
   };
+const getQuestionTextValue = (question, sectionId) => {
+  const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+  const key = `${numericSectionId}_${question.text}`;
 
-  const getQuestionTextValue = (question, sectionId) => {
-    const numericSectionId =
-      typeof sectionId === "string" ? Number(sectionId) : sectionId;
-    const key = `${numericSectionId}_${question.text}`;
+  // Debug logging to track values
+  console.log(`Getting value for section ${numericSectionId}, question: ${question.text}`, {
+    key,
+    value: inputValues[key] || radioValues[key] || checkboxValues[key] || 
+           selectedYesNoValues[key] || selectedDropdownValues[key] || 
+           dateValues[key] || uploadedFiles[key]
+  });
 
-    switch (question.type) {
-      case "Free Entry":
-      case "Email":
-      case "Number":
-        return inputValues[key] || "";
-      case "Radio Buttons":
-        return radioValues[key] || "";
-      case "Checkboxes":
-        return checkboxValues[key]
-          ? Object.keys(checkboxValues[key])
-              .filter((k) => checkboxValues[key][k])
-              .join(", ")
-          : "";
-      case "Yes/No":
-        return selectedYesNoValues[key] || "";
-      case "Dropdown":
-        return selectedDropdownValues[key] || "";
-      case "Date":
-        return dateValues[key]?.toISOString() || "";
-      case "Text Editor":
-        return question.text || "";
-      case "File Upload":
-        const fileInfos = uploadedFiles[key];
-        return fileInfos && fileInfos.length > 0
-          ? fileInfos
-              .filter((f) => f.status === "completed")
-              .map((f) => f.fileName)
-              .join(", ")
-          : "";
-      default:
-        return "";
-    }
-  };
+  switch (question.type) {
+    case "Free Entry":
+    case "Email":
+    case "Number":
+      return inputValues[key] || "";
+    case "Radio Buttons":
+      return radioValues[key] || "";
+    case "Checkboxes":
+      return checkboxValues[key]
+        ? Object.keys(checkboxValues[key])
+            .filter((k) => checkboxValues[key][k])
+            .join(", ")
+        : "";
+    case "Yes/No":
+      return selectedYesNoValues[key] || "";
+    case "Dropdown":
+      return selectedDropdownValues[key] || "";
+    case "Date":
+      return dateValues[key]?.toISOString() || "";
+    case "Text Editor":
+      return question.text || "";
+    case "File Upload":
+      const fileInfos = uploadedFiles[key];
+      return fileInfos && fileInfos.length > 0
+        ? fileInfos
+            .filter((f) => f.status === "completed")
+            .map((f) => f.fileName)
+            .join(", ")
+        : "";
+    default:
+      return "";
+  }
+};
 
-  const getOptionSelectedState = (question, option, sectionId) => {
-    const numericSectionId =
-      typeof sectionId === "string" ? Number(sectionId) : sectionId;
-    const key = `${numericSectionId}_${question.text}`;
-    switch (question.type) {
-      case "Radio Buttons":
-        return radioValues[key] === option.text;
-      case "Checkboxes":
-        return checkboxValues[key]?.[option.text] || false;
-      case "Yes/No":
-        return selectedYesNoValues[key] === option.text;
-      case "Dropdown":
-        return selectedDropdownValues[key] === option.text;
-      default:
-        return false;
-    }
-  };
+const getOptionSelectedState = (question, option, sectionId) => {
+  const numericSectionId = typeof sectionId === "string" ? Number(sectionId) : sectionId;
+  const key = `${numericSectionId}_${question.text}`;
+  
+  switch (question.type) {
+    case "Radio Buttons":
+      return radioValues[key] === option.text;
+    case "Checkboxes":
+      return checkboxValues[key]?.[option.text] || false;
+    case "Yes/No":
+      return selectedYesNoValues[key] === option.text;
+    case "Dropdown":
+      return selectedDropdownValues[key] === option.text;
+    default:
+      return false;
+  }
+};
+  // const getQuestionTextValue = (question, sectionId) => {
+  //   const numericSectionId =
+  //     typeof sectionId === "string" ? Number(sectionId) : sectionId;
+  //   const key = `${numericSectionId}_${question.text}`;
+
+  //   switch (question.type) {
+  //     case "Free Entry":
+  //     case "Email":
+  //     case "Number":
+  //       return inputValues[key] || "";
+  //     case "Radio Buttons":
+  //       return radioValues[key] || "";
+  //     case "Checkboxes":
+  //       return checkboxValues[key]
+  //         ? Object.keys(checkboxValues[key])
+  //             .filter((k) => checkboxValues[key][k])
+  //             .join(", ")
+  //         : "";
+  //     case "Yes/No":
+  //       return selectedYesNoValues[key] || "";
+  //     case "Dropdown":
+  //       return selectedDropdownValues[key] || "";
+  //     case "Date":
+  //       return dateValues[key]?.toISOString() || "";
+  //     case "Text Editor":
+  //       return question.text || "";
+  //     case "File Upload":
+  //       const fileInfos = uploadedFiles[key];
+  //       return fileInfos && fileInfos.length > 0
+  //         ? fileInfos
+  //             .filter((f) => f.status === "completed")
+  //             .map((f) => f.fileName)
+  //             .join(", ")
+  //         : "";
+  //     default:
+  //       return "";
+  //   }
+  // };
+
+  // const getOptionSelectedState = (question, option, sectionId) => {
+  //   const numericSectionId =
+  //     typeof sectionId === "string" ? Number(sectionId) : sectionId;
+  //   const key = `${numericSectionId}_${question.text}`;
+  //   switch (question.type) {
+  //     case "Radio Buttons":
+  //       return radioValues[key] === option.text;
+  //     case "Checkboxes":
+  //       return checkboxValues[key]?.[option.text] || false;
+  //     case "Yes/No":
+  //       return selectedYesNoValues[key] === option.text;
+  //     case "Dropdown":
+  //       return selectedDropdownValues[key] === option.text;
+  //     default:
+  //       return false;
+  //   }
+  // };
 
   useEffect(() => {
     if (organizer?.sections) {
@@ -1629,8 +2004,47 @@ useEffect(() => {
                     )}
                   </div>
                 )}
-
-                {element.type === "Date" && (
+{element.type === "Date" && (
+  <div className="mt-4">
+    <p className="text-sm font-medium text-gray-700 mb-1">
+      {element.text}
+      {element.questionsectionsettings?.required && (
+        <span className="text-red-500 ml-1">*</span>
+      )}
+    </p>
+    <DatePicker
+      selected={dateValues[`${sectionId}_${element.text}`] || null}
+      onChange={(date) => {
+        if (!isElementActive(element)) {
+          handleDateChange(date, element.text, sectionId);
+        }
+      }}
+      disabled={isElementActive(element)}
+      dateFormat="MM/dd/yyyy"
+      placeholderText="MM/DD/YYYY"
+      showYearDropdown
+      yearDropdownItemNumber={100}
+      scrollableYearDropdown
+      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+        hasError(sectionId, element.text)
+          ? "border-red-500"
+          : "border-gray-300"
+      } ${isElementActive(element) ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
+      wrapperClassName="w-full"
+      calendarClassName="shadow-lg rounded-lg border border-gray-200"
+      popperClassName="z-50"
+      popperPlacement="bottom-start"
+      showPopperArrow={false}
+      isClearable={!isElementActive(element)}
+    />
+    {hasError(sectionId, element.text) && (
+      <p className="text-red-500 text-xs mt-1 ml-1">
+        {getErrorMessage(sectionId, element.text)}
+      </p>
+    )}
+  </div>
+)}
+                {/* {element.type === "Date" && (
                   <div className="mt-4">
                     <p className="text-sm font-medium text-gray-700 mb-1">
                       {element.text}
@@ -1669,7 +2083,7 @@ useEffect(() => {
                       </p>
                     )}
                   </div>
-                )}
+                )} */}
                 {element.type === "File Upload" && (
                   <div className="mt-4">
                     <p className="text-sm font-medium text-gray-700 mb-1">

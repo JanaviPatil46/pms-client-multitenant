@@ -1957,10 +1957,10 @@ const DocsFolderTree = () => {
 
         {/* ================= SIGNATURE DIALOG ================= */}
         {/* ================= SIGNATURE DIALOG ================= */}
-        {dialogOpen && (
+        {/* {dialogOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
             <div className="w-full max-w-6xl bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
-              {/* Header */}
+       
               <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50">
                 <div>
                   <h3 className="text-2xl font-bold text-slate-800">
@@ -1980,7 +1980,7 @@ const DocsFolderTree = () => {
                 </button>
               </div>
 
-              {/* Content */}
+           
               <div className="h-[82vh] overflow-hidden bg-slate-100">
                 {selectedSlug && (
                   <div className="w-full h-full bg-white">
@@ -2071,8 +2071,116 @@ const DocsFolderTree = () => {
               </div>
             </div>
           </div>
-        )}
+        )} */}
+{dialogOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+    <div className="w-full max-w-6xl bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden flex flex-col max-h-[90vh]">
+      {/* Header - fixed height */}
+      <div className="flex-shrink-0 flex items-center justify-between px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50">
+        <div>
+          <h3 className="text-2xl font-bold text-slate-800">Digital Signature</h3>
+          <p className="text-sm text-slate-500 mt-1">Complete your signature process securely</p>
+        </div>
+        <button
+          onClick={handleCloseDialog}
+          className="h-11 w-11 rounded-2xl hover:bg-slate-100 flex items-center justify-center transition-all"
+        >
+          <X className="w-5 h-5 text-slate-600" />
+        </button>
+      </div>
 
+      {/* Content - scrollable */}
+      <div className="flex-1 overflow-auto bg-slate-100 min-h-0">
+        {selectedSlug && (
+          <div className="w-full h-full min-h-[600px] bg-white">
+            <DocusealForm
+                      src={`https://docuseal.com/s/${selectedSlug}`}
+                      email={targetEmail}
+                      onComplete={async (data) => {
+                        console.log("Post-sign data:", data);
+
+                        try {
+                          // ✅ 1. Update submitter status (API.js)
+                          const updateSubmitterRes =
+                            await esignAPI.updateSubmitterStatus(
+                              data.template.external_id,
+                              {
+                                submitterEmail: targetEmail,
+                                submissionId: data.submission_id,
+                              },
+                            );
+
+                          const updateData = updateSubmitterRes.data;
+
+                          if (updateData.success) {
+                            console.log(
+                              "✅ Document replaced with latest signature",
+                            );
+
+                            if (updateData.allCompleted) {
+                              console.log(
+                                "🎉 All submitters have completed signing!",
+                              );
+
+                              const fullPath = decodeURIComponent(
+                                updateData.esignRecord.fileUrl.split(
+                                  "/uploads/accounts/",
+                                )[1],
+                              );
+
+                              console.log("Full file path:", fullPath);
+
+                              // ✅ 2. Update status via API.js
+                              await updateStatus(
+                                {
+                                  path: fullPath,
+                                  accountId: accountId,
+                                  accountName: accountName,
+                                },
+                                "signStatus",
+                                "signatureCompleted",
+                              );
+
+                              // ✅ 3. Notify admin via API.js
+                              await esignAPI.notifyAdmin({
+                                clientName: targetEmail,
+                                documentName: selectedSlug,
+                                message: "All parties have completed signing",
+                                accountId: accountId,
+                              });
+
+                              alert(
+                                "All signatures completed! Document has been fully executed.",
+                              );
+                            } else {
+                              console.log(
+                                `✅ You have signed. Waiting for ${updateData.pendingCount} more signer(s).`,
+                              );
+
+                              alert(
+                                `Thank you for signing! Waiting for ${updateData.pendingCount} more signer(s) to complete.`,
+                              );
+                            }
+                          } else {
+                            alert("Error updating signature status.");
+                          }
+                        } catch (err) {
+                          console.error(
+                            "Error handling post-sign actions",
+                            err,
+                          );
+                          alert("Error while updating sign status.");
+                        }
+
+                        handleCloseDialog();
+                      }}
+                    />
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
         {/* ================= INVOICE DIALOG ================= */}
         {invoiceDialogOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
