@@ -393,28 +393,126 @@ const DocsFolderTree = () => {
       }
     };
 
+    // const handleBulkDownload = async () => {
+    //   if (selectedItems.size === 0) {
+    //     toast.warning("Please select items to download");
+    //     return;
+    //   }
+    //   setBulkOperationLoading(true);
+    //   try {
+    //     const paths = Array.from(selectedItems);
+    //     const res = await accountDocsAPI.downloadItems({
+    //       paths,
+    //       accountId,
+    //       accountName,
+    //     });
+    //     const blob = res.data;
+    //     const url = window.URL.createObjectURL(blob);
+    //     const a = document.createElement("a");
+    //     a.href = url;
+    //     a.download = `selected_items_${Date.now()}.zip`;
+    //     document.body.appendChild(a);
+    //     a.click();
+    //     a.remove();
+    //     window.URL.revokeObjectURL(url);
+    //     toast.success("Download started");
+    //   } catch (err) {
+    //     console.error("Bulk download error:", err);
+    //     toast.error("Failed to download items");
+    //   } finally {
+    //     setBulkOperationLoading(false);
+    //   }
+    // };
+
+
     const handleBulkDownload = async () => {
       if (selectedItems.size === 0) {
         toast.warning("Please select items to download");
         return;
       }
+    
       setBulkOperationLoading(true);
+    
       try {
         const paths = Array.from(selectedItems);
+    
+        // Find item by path from folder tree
+        const findItemByPath = (items, targetPath) => {
+          for (const item of items) {
+            if (item.path === targetPath) {
+              return item;
+            }
+    
+            if (item.children?.length) {
+              const found = findItemByPath(item.children, targetPath);
+    
+              if (found) {
+                return found;
+              }
+            }
+          }
+    
+          return null;
+        };
+    
+        // =====================================================
+        // SINGLE ITEM
+        // =====================================================
+        if (paths.length === 1) {
+          const selectedPath = paths[0];
+          const selectedItem = findItemByPath(folderTree, selectedPath);
+    
+          // Single FILE -> direct download
+          if (selectedItem && selectedItem.type !== "folder") {
+            const res = await accountDocsAPI.downloadItems({
+              paths: [selectedPath],
+              accountId,
+              accountName,
+            });
+    
+            const blob = res.data;
+    
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+    
+            a.href = url;
+            a.download =
+              selectedItem.name || selectedPath.split("/").pop();
+    
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+    
+            window.URL.revokeObjectURL(url);
+    
+            toast.success("Download started");
+            return;
+          }
+        }
+    
+        // =====================================================
+        // MULTIPLE ITEMS OR FOLDER -> ZIP
+        // =====================================================
         const res = await accountDocsAPI.downloadItems({
           paths,
           accountId,
           accountName,
         });
+    
         const blob = res.data;
+    
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
+    
         a.href = url;
         a.download = `selected_items_${Date.now()}.zip`;
+    
         document.body.appendChild(a);
         a.click();
         a.remove();
+    
         window.URL.revokeObjectURL(url);
+    
         toast.success("Download started");
       } catch (err) {
         console.error("Bulk download error:", err);
@@ -423,7 +521,6 @@ const DocsFolderTree = () => {
         setBulkOperationLoading(false);
       }
     };
-
     const trashItem = async (item) => {
       if (!item?.path) return alert("Invalid path");
       const confirmTrash = window.confirm(
