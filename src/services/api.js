@@ -1420,7 +1420,7 @@ export const chatAPI = {
 
   getAllChats: () => chatApi.get("/chats/chatsaccountwise"),
 
-  getChatById: (id) => chatApi.get(`/chats/chatsaccountwise/${id}`),
+  getChatById: (id, role) => chatApi.get(`/chats/chatsaccountwise/${id}?role=${role}`),
 
   getChatsByAccount: (accountId) =>
     chatApi.get(`/chats/chatsaccountwise/chatlistbyaccount/${accountId}`),
@@ -1452,7 +1452,17 @@ export const chatAPI = {
     chatApi.delete(`/chats/chatsaccountwise/chatmessage/bymessageid/delete`, {
       data,
     }),
+// Delete individual message for admin
+  deleteMessageForAdmin: (chatId, messageId) =>
+    chatApi.delete(
+      `/chats/chat/${chatId}/message/${messageId}/admin`,
+    ),
 
+  // Delete individual message for client
+  deleteMessageForClient: (chatId, messageId) =>
+    chatApi.delete(
+      `/chats/chat/${chatId}/message/${messageId}/client`,
+    ),
   sendMessageFromClient: (id, data) =>
     chatApi.patch(`/chats/chatsaccountwise/chatmessagefromclient/${id}`, data),
 

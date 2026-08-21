@@ -52,7 +52,7 @@ const UpdateChat = () => {
   // ✅ CHAT API
   const getsChatDetails = async () => {
     try {
-      const res = await chatAPI.getChatById(_id);
+      const res = await chatAPI.getChatById(_id, "client");
       const data = res.data;
       console.log("Chat details:", data);
       setChatSubject(data.chat.chatsubject);
@@ -75,16 +75,19 @@ const UpdateChat = () => {
     
     const messageTimestamp = new Date(messageTime).getTime();
     const currentTime = new Date().getTime();
-    const tenMinutes = 10 * 60 * 1000;
+   // const tenMinutes = 10 * 60 * 1000;
     
-    return (currentTime - messageTimestamp) <= tenMinutes;
+  //  return (currentTime - messageTimestamp) <= tenMinutes;
+
+  const oneDay = 24 * 60 * 60 * 1000;
+return currentTime - messageTimestamp <= oneDay;
   };
 
   // Edit message function for client
   const handleEditMessage = (message) => {
     console.log("Attempting to edit message:", message);
     if (!canEditMessage(message.time)) {
-      toast.error("Cannot edit message after 10 minutes");
+      toast.error("Cannot edit message after 24 hours");
       return;
     }
     
@@ -126,11 +129,12 @@ const UpdateChat = () => {
 
   // ✅ DELETE MESSAGE
   const handleDeleteMessage = async (messageToDelete) => {
+    console.log("Attempting to delete message:", messageToDelete._id);
     try {
-      await chatAPI.deleteMessage({
-        chatId: _id,
-        messageId: messageToDelete._id,
-      });
+      await chatAPI.deleteMessageForClient(
+        _id,
+         messageToDelete._id,
+      );
 
       toast.success("Message deleted successfully");
       getsChatDetails();
